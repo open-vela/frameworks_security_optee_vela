@@ -27,6 +27,7 @@
 #include <netpacket/rpmsg.h>
 #include <optee_msg.h>
 #include <trace.h>
+#include <tee/entry_std.h>
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -39,7 +40,6 @@
  * Public Functions Prototypes
  ****************************************************************************/
 
-extern int optee_ioctl(struct optee_msg_arg *msg_arg);
 
 /****************************************************************************
  * Private Functions
@@ -193,7 +193,7 @@ static void *optee_thread(void *arg)
 		}
 
 		/* Call optee-os entry function */
-		ret = optee_ioctl(msg);
+		ret = tee_entry_std(msg, msg->num_params);
 		if (ret < 0) {
 			EMSG("optee_ioctl failed(%d)\n", ret);
 			break;
@@ -212,7 +212,7 @@ static void *optee_thread(void *arg)
 				shm_tmp = (const void *)(uintptr_t)param[i].u.rmem.shm_ref;
 				/* Send inout and out data of shered memory */
 				ret = optee_send(connfd, shm_tmp,
-                                                 MIN(shm_size[i], param[i].u.rmem.size));
+						 MIN(shm_size[i], param[i].u.rmem.size));
 				if (ret < 0)
 					break;
 			}
