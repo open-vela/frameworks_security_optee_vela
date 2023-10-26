@@ -26,6 +26,7 @@
 #include <sys/un.h>
 #include <netpacket/rpmsg.h>
 #include <optee_msg.h>
+#include <initcall.h>
 #include <trace.h>
 #include <tee/entry_std.h>
 
@@ -269,6 +270,9 @@ static void optee_server(int fd)
 
 int main(int argc, char *argv[])
 {
+	/* Initialize optee-os modules */
+	call_initcalls();
+
 	int fd = optee_bind();
 	if (fd >= 0) {
 		optee_server(fd);
