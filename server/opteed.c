@@ -153,12 +153,16 @@ static void *optee_thread(void *arg)
 
 		size_t shm_size[OPTEE_MAX_PARAM_NUM];
 		size_t shm_total = 0;
+		size_t shm_recv = 0;
 
 		for (uint32_t i = 0; i < msg->num_params; i++) {
 			uint32_t attr = param[i].attr & OPTEE_MSG_ATTR_TYPE_MASK;
 			if (attr == OPTEE_MSG_ATTR_TYPE_RMEM_INOUT ||
-			    attr == OPTEE_MSG_ATTR_TYPE_RMEM_INPUT ||
-			    attr == OPTEE_MSG_ATTR_TYPE_RMEM_OUTPUT) {
+			    attr == OPTEE_MSG_ATTR_TYPE_RMEM_INPUT) {
+				shm_size[i] = param[i].u.rmem.size;
+				shm_total += param[i].u.rmem.size;
+				shm_recv += param[i].u.rmem.size;
+			} else if (attr == OPTEE_MSG_ATTR_TYPE_RMEM_OUTPUT) {
 				shm_size[i] = param[i].u.rmem.size;
 				shm_total += param[i].u.rmem.size;
 			}
@@ -176,9 +180,11 @@ static void *optee_thread(void *arg)
 			shm_buf_size = shm_total;
 		}
 
-		ret = optee_recv(connfd, shm_tmp, shm_total);
-		if (ret < 0)
-			break;
+		if (shm_recv > 0) {
+			ret = optee_recv(connfd, shm_tmp, shm_recv);
+			if (ret < 0)
+				break;
+		}
 
 		void *shm_end = shm_tmp + shm_total;
 		for (uint32_t i = 0; i < msg->num_params; i++) {
