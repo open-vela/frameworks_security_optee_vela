@@ -360,7 +360,7 @@ static TEE_Result user_ta_wasm_enter_invoke_cmd(struct ts_session *s, uint32_t c
 	}
 
 	/* TEE_Result TA_EXPORT TA_InvokeCommandEntryPoint(
-         *				[ctx] void* sessionContext,
+	 *				[ctx] void* sessionContext,
 	 *				uint32_t commandID,
 	 *				uint32_t paramTypes,
 	 *				[inout] TEE_Param params[4]);
@@ -394,7 +394,6 @@ static TEE_Result user_ta_wasm_enter_invoke_cmd(struct ts_session *s, uint32_t c
 	}
 	res = wasm_res;
 out:
-	// tee_ta_pop_current_session();
 	ts_sess = ts_pop_current_session();
 	assert(ts_sess == s);
 	return res;
