@@ -53,3 +53,8 @@ void free_wipe(void *ptr)
 {
 	raw_free(ptr, NULL, true);
 }
+
+bool malloc_buffer_overlaps_heap(void *buf, size_t len)
+{
+	return umm_heapmember(buf);
+}

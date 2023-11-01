@@ -21,6 +21,7 @@
 #include <tee_api_types.h>
 #include <tee_api.h>
 #include <tee_api_defines.h>
+#include <tee_internal_api.h>
 #include <trace.h>
 
 #include "wasm_export.h"
@@ -1549,6 +1550,875 @@ sleep_wrapper(wasm_exec_env_t exec_env, uint32_t timeout_s)
 	return 0;
 }
 
+static TEE_Result TEE_SetOperationKey2_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_OperationHandle operation,
+	TEE_ObjectHandle key1,
+	TEE_ObjectHandle key2)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	return TEE_SetOperationKey2(operation, key1, key2);
+}
+
+static TEE_Result TEE_CopyObjectAttributes1_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_ObjectHandle destObject,
+	TEE_ObjectHandle srcObject)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	return TEE_CopyObjectAttributes1(destObject, srcObject);
+}
+
+static TEE_Result TEE_AsymmetricEncrypt_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_OperationHandle operation,
+	const TEE_Attribute *params, uint32_t paramCount,
+	const void *srcData, size_t srcLen,
+	void *destData, size_t *destLen)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)params, paramCount))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)srcData, srcLen))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)destData, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)destLen, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_AsymmetricEncrypt(operation,
+				params, paramCount,
+				srcData, srcLen,
+				destData, destLen);
+}
+
+static TEE_Result TEE_AsymmetricDecrypt_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_OperationHandle operation,
+	const TEE_Attribute *params, uint32_t paramCount,
+	const void *srcData, size_t srcLen,
+	void *destData, size_t *destLen)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)params, paramCount))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)destLen, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)destData, *destLen))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_AsymmetricDecrypt(operation,
+				params, paramCount,
+				srcData, srcLen,
+				destData, destLen);
+}
+
+static TEE_Result TEE_AsymmetricSignDigest_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_OperationHandle operation,
+	const TEE_Attribute *params, uint32_t paramCount,
+	const void *digest,	size_t digestLen,
+	void *signature, size_t *signatureLen)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)params, paramCount))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)digest, digestLen))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)signature, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)signature, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_AsymmetricSignDigest(operation,
+				params, paramCount,
+				digest, digestLen,
+				signature, signatureLen);
+}
+
+static TEE_Result TEE_AsymmetricVerifyDigest_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_OperationHandle operation,
+	const TEE_Attribute *params, uint32_t paramCount,
+	const void *digest, size_t digestLen,
+	const void *signature, size_t signatureLen)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)params, paramCount))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)digest, digestLen))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)signature, signatureLen))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_AsymmetricVerifyDigest(operation,
+					params, paramCount,
+					digest, digestLen,
+					signature, signatureLen);
+}
+
+static void TEE_DeriveKey_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_OperationHandle operation,
+	const TEE_Attribute *params, uint32_t paramCount,
+	TEE_ObjectHandle derivedKey)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)params, paramCount))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_DeriveKey(operation, params, paramCount, derivedKey);
+}
+
+static void TEE_AEUpdateAAD_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_OperationHandle operation,
+	const void *AADdata, size_t AADdataLen)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	/* srcData has been checked by runtime */
+	if (!validate_native_addr((void*)AADdata, AADdataLen))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_AEUpdateAAD(operation, AADdata, AADdataLen);
+}
+
+static TEE_Result TEE_AEUpdate_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_OperationHandle operation,
+	const void *srcData, size_t srcLen,
+	void *destData, size_t *destLen)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)srcData, srcLen))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)destData, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)destLen, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_AEUpdate(operation, srcData, srcLen, destData, destLen);
+}
+
+static void TEE_GetOperationInfo_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_OperationHandle operation,
+	TEE_OperationInfo *operationInfo)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)operationInfo, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	return TEE_GetOperationInfo(operation, operationInfo);
+}
+
+static TEE_Result TEE_OpenTASession_wrapper(
+	wasm_exec_env_t exec_env,
+	const TEE_UUID *destination,
+	uint32_t cancellationRequestTimeout,
+	uint32_t paramTypes,
+	TEE_Param params[TEE_NUM_PARAMS],
+	TEE_TASessionHandle *session,
+	uint32_t *returnOrigin)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)destination, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)params, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)session, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)returnOrigin, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_OpenTASession(destination, cancellationRequestTimeout,
+				paramTypes, params, session, returnOrigin);
+}
+
+static TEE_Result TEE_InvokeTACommand_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_TASessionHandle session,
+	uint32_t cancellationRequestTimeout,
+	uint32_t commandID, uint32_t paramTypes,
+	TEE_Param params[TEE_NUM_PARAMS],
+	uint32_t *returnOrigin)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)params, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)returnOrigin, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_InvokeTACommand(session, cancellationRequestTimeout,
+				commandID, paramTypes, params, returnOrigin);
+}
+
+static void TEE_CloseTASession_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_TASessionHandle session)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	TEE_CloseTASession(session);
+}
+
+static void TEE_BigIntInit_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_BigInt *bigInt, size_t len)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)bigInt, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntInit(bigInt, len);
+}
+
+static size_t TEE_BigIntFMMContextSizeInU32_wrapper(
+	wasm_exec_env_t exec_env,
+	size_t modulusSizeInBits)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	return TEE_BigIntFMMContextSizeInU32(modulusSizeInBits);
+}
+
+static void TEE_BigIntInitFMMContext_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_BigIntFMMContext *context, size_t len,
+	const TEE_BigInt *modulus)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)context, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)modulus, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntInitFMMContext(context, len, modulus);
+}
+
+static size_t TEE_BigIntFMMSizeInU32_wrapper(
+	wasm_exec_env_t exec_env, size_t modulusSizeInBits)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	return TEE_BigIntFMMSizeInU32(modulusSizeInBits);
+}
+
+static void TEE_BigIntInitFMM_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigIntFMM *bigIntFMM, size_t len)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)bigIntFMM, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntInitFMM(bigIntFMM, len);
+}
+
+static TEE_Result TEE_BigIntConvertFromOctetString_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_BigInt *dest, const uint8_t *buffer, size_t bufferLen,
+	int32_t sign)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)buffer, bufferLen))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntConvertFromOctetString(dest, buffer, bufferLen, sign);
+}
+
+static void TEE_BigIntConvertFromS32_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest, int32_t shortVal)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntConvertFromS32(dest, shortVal);
+}
+
+static int32_t TEE_BigIntCmpS32_wrapper(
+	wasm_exec_env_t exec_env, const TEE_BigInt *op, int32_t shortVal)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)op, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntCmpS32(op, shortVal);
+}
+
+static TEE_Result TEE_BigIntConvertToOctetString_wrapper(
+	wasm_exec_env_t exec_env,
+	uint8_t *buffer, size_t *bufferLen, const TEE_BigInt *bigInt)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)buffer, bufferLen))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)bigInt, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntConvertToOctetString(buffer, bufferLen, bigInt);
+}
+
+static TEE_Result TEE_BigIntConvertToS32_wrapper(
+	wasm_exec_env_t exec_env, int32_t *dest, const TEE_BigInt *src)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)src, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntConvertToS32(dest, src);
+}
+
+static bool TEE_BigIntGetBit_wrapper(
+	wasm_exec_env_t exec_env, const TEE_BigInt *src, uint32_t bitIndex)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)src, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntGetBit(src, bitIndex);
+}
+
+static uint32_t TEE_BigIntGetBitCount_wrapper(
+	wasm_exec_env_t exec_env, const TEE_BigInt *src)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)src, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntGetBitCount(src);
+}
+
+static TEE_Result TEE_BigIntSetBit_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *op,
+	uint32_t bitIndex, bool value)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)op, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntSetBit(op, bitIndex, value);
+}
+
+static void TEE_BigIntShiftRight_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest,
+	const TEE_BigInt *op, size_t bits)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntShiftRight(dest, op, bits);
+}
+
+static int32_t TEE_BigIntCmp_wrapper(
+	wasm_exec_env_t exec_env,
+	const TEE_BigInt *op1, const TEE_BigInt *op2)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)op1, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)op2, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntCmp(op1, op2);
+}
+
+static void TEE_BigIntAdd_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_BigInt *dest, const TEE_BigInt *op1, const TEE_BigInt *op2)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op1, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op2, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntAdd(dest, op1, op2);
+}
+
+static void TEE_BigIntSub_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest,
+	const TEE_BigInt *op1, const TEE_BigInt *op2)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op1, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op2, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntSub(dest, op1, op2);
+}
+
+static void TEE_BigIntMul_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest,
+	const TEE_BigInt *op1, const TEE_BigInt *op2)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op1, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op2, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntMul(dest, op1, op2);
+}
+
+static void TEE_BigIntNeg_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest, const TEE_BigInt *op)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	return TEE_BigIntNeg(dest, op);
+}
+
+static TEE_Result TEE_BigIntAssign_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_BigInt *dest, const TEE_BigInt *src)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)src, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntAssign(dest, src);
+}
+
+static TEE_Result TEE_BigIntAbs_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest, const TEE_BigInt *src)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)src, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntAbs(dest, src);
+}
+
+static void TEE_BigIntSquare_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest, const TEE_BigInt *op)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntSquare(dest, op);
+}
+
+static void TEE_BigIntDiv_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest_q, TEE_BigInt *dest_r,
+	const TEE_BigInt *op1, const TEE_BigInt *op2)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest_q, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)dest_r, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op1, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op2, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntDiv(dest_q, dest_r, op1, op2);
+}
+
+static void TEE_BigIntMod_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest,
+	const TEE_BigInt *op, const TEE_BigInt *n)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)n, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntMod(dest, op, n);
+}
+
+static void TEE_BigIntAddMod_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest,
+	const TEE_BigInt *op1, const TEE_BigInt *op2, const TEE_BigInt *n)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op1, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op2, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)n, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntAddMod(dest, op1, op2, n);
+}
+
+static void TEE_BigIntSubMod_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest,
+	const TEE_BigInt *op1, const TEE_BigInt *op2, const TEE_BigInt *n)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op1, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op2, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)n, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntSubMod(dest, op1, op2, n);
+}
+
+static void TEE_BigIntMulMod_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest,
+	const TEE_BigInt *op1, const TEE_BigInt *op2, const TEE_BigInt *n)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op1, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op2, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)n, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntMulMod(dest, op1, op2, n);
+}
+
+static void TEE_BigIntSquareMod_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_BigInt *dest, const TEE_BigInt *op, const TEE_BigInt *n)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)n, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntSquareMod(dest, op, n);
+}
+
+static void TEE_BigIntInvMod_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_BigInt *dest, const TEE_BigInt *op, const TEE_BigInt *n)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)n, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntInvMod(dest, op, n);
+}
+
+static TEE_Result TEE_BigIntExpMod_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigInt *dest,
+	const TEE_BigInt *op1, const TEE_BigInt *op2,
+	const TEE_BigInt *n, const TEE_BigIntFMMContext *context)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)op1, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)op2, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)n, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)context, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntExpMod(dest, op1, op2, n, context);
+}
+
+static bool TEE_BigIntRelativePrime_wrapper(
+	wasm_exec_env_t exec_env, const TEE_BigInt *op1, const TEE_BigInt *op2)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)op1, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!validate_native_addr((void*)op2, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntRelativePrime(op1, op2);
+}
+
+static void TEE_BigIntComputeExtendedGcd_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_BigInt *gcd, TEE_BigInt *u, TEE_BigInt *v,
+	const TEE_BigInt *op1, const TEE_BigInt *op2)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)gcd, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)u, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)v, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op1, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op2, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntComputeExtendedGcd(gcd, u, v, op1, op2);
+}
+
+static int32_t TEE_BigIntIsProbablePrime_wrapper(
+	wasm_exec_env_t exec_env, const TEE_BigInt *op, uint32_t confidenceLevel)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)op, sizeof(uint32_t)))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	return TEE_BigIntIsProbablePrime(op, confidenceLevel);
+}
+
+static void TEE_BigIntConvertToFMM_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_BigIntFMM *dest, const TEE_BigInt *src,
+	const TEE_BigInt *n, const TEE_BigIntFMMContext *context)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)src, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)n, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)context, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntConvertToFMM(dest, src, n, context);
+}
+
+static void TEE_BigIntConvertFromFMM_wrapper(
+	wasm_exec_env_t exec_env,
+	TEE_BigInt *dest, const TEE_BigIntFMM *src,
+	const TEE_BigInt *n, const TEE_BigIntFMMContext *context)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)src, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)n, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)context, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntConvertFromFMM(dest, src, n, context);
+}
+
+static void TEE_BigIntComputeFMM_wrapper(
+	wasm_exec_env_t exec_env, TEE_BigIntFMM *dest,
+	const TEE_BigIntFMM *op1, const TEE_BigIntFMM *op2,
+	const TEE_BigInt *n, const TEE_BigIntFMMContext *context)
+{
+	DMSG("wasm.libtee.%s\n", __func__);
+	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
+
+	if (!validate_native_addr((void*)dest, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op1, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)op2, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)n, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	if (!validate_native_addr((void*)context, sizeof(uint32_t)))
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	TEE_BigIntComputeFMM(dest, op1, op2, n, context);
+}
+
 #define REG_NATIVE_FUNC(func_name, signature)  \
 	{ #func_name, func_name##_wrapper, signature, NULL }
 
@@ -1568,7 +2438,7 @@ static NativeSymbol native_symbols_libtee_builtin[] = {
 	REG_NATIVE_FUNC(TEE_ReadObjectData, "(i*~*)i"),
 	REG_NATIVE_FUNC(TEE_WriteObjectData, "(i*~)i"),
 	REG_NATIVE_FUNC(TEE_TruncateObjectData, "(ii)i"),
-	REG_NATIVE_FUNC(TEE_SeekObjectData, "(iii)i"),
+	REG_NATIVE_FUNC(TEE_SeekObjectData, "(iIi)i"),
 	REG_NATIVE_FUNC(find_hash, "(*)i"),
 	REG_NATIVE_FUNC(hmac_memory, "(i*~*~**)i"),
 	REG_NATIVE_FUNC(trace_printf, "($iii$*)"),
@@ -1616,6 +2486,55 @@ static NativeSymbol native_symbols_libtee_builtin[] = {
 	REG_NATIVE_FUNC(TEE_RestrictObjectUsage1, "(ii)i"),
 	REG_NATIVE_FUNC(TEE_ResetTransientObject, "(i)"),
 	REG_NATIVE_FUNC(TEE_Panic, "(i)"),
+	REG_NATIVE_FUNC(TEE_SetOperationKey2, "(iii)i"),
+	REG_NATIVE_FUNC(TEE_CopyObjectAttributes1, "(ii)i"),
+	REG_NATIVE_FUNC(TEE_AsymmetricEncrypt, "(i*~*~**)i"),
+	REG_NATIVE_FUNC(TEE_AsymmetricDecrypt, "(i*~*~**)i"),
+	REG_NATIVE_FUNC(TEE_AsymmetricSignDigest, "(i*~*~**)i"),
+	REG_NATIVE_FUNC(TEE_AsymmetricVerifyDigest, "(i*~*~*~)i"),
+	REG_NATIVE_FUNC(TEE_DeriveKey, "(i*~i)"),
+	REG_NATIVE_FUNC(TEE_AEUpdateAAD, "(i*~)"),
+	REG_NATIVE_FUNC(TEE_AEUpdate, "(i*~**)i"),
+	REG_NATIVE_FUNC(TEE_GetOperationInfo, "(i*)"),
+	REG_NATIVE_FUNC(TEE_OpenTASession, "(*ii***)i"),
+	REG_NATIVE_FUNC(TEE_InvokeTACommand, "(iiii**)i"),
+	REG_NATIVE_FUNC(TEE_CloseTASession, "(i)"),
+	REG_NATIVE_FUNC(TEE_BigIntInit, "(*i)"),
+	REG_NATIVE_FUNC(TEE_BigIntFMMContextSizeInU32, "(i)i"),
+	REG_NATIVE_FUNC(TEE_BigIntInitFMMContext, "(*i*)"),
+	REG_NATIVE_FUNC(TEE_BigIntFMMSizeInU32, "(i)i"),
+	REG_NATIVE_FUNC(TEE_BigIntInitFMM, "(*i)"),
+	REG_NATIVE_FUNC(TEE_BigIntConvertFromOctetString, "(**~i)i"),
+	REG_NATIVE_FUNC(TEE_BigIntConvertFromS32, "(*i)"),
+	REG_NATIVE_FUNC(TEE_BigIntCmpS32, "(*i)i"),
+	REG_NATIVE_FUNC(TEE_BigIntConvertToOctetString, "(***)i"),
+	REG_NATIVE_FUNC(TEE_BigIntConvertToS32, "(**)i"),
+	REG_NATIVE_FUNC(TEE_BigIntGetBit, "(*i)i"),
+	REG_NATIVE_FUNC(TEE_BigIntSetBit, "(*ii)i"),
+	REG_NATIVE_FUNC(TEE_BigIntShiftRight, "(**i)"),
+	REG_NATIVE_FUNC(TEE_BigIntCmp, "(**)i"),
+	REG_NATIVE_FUNC(TEE_BigIntAdd, "(***)"),
+	REG_NATIVE_FUNC(TEE_BigIntSub, "(***)"),
+	REG_NATIVE_FUNC(TEE_BigIntMul, "(***)"),
+	REG_NATIVE_FUNC(TEE_BigIntNeg, "(**)"),
+	REG_NATIVE_FUNC(TEE_BigIntAssign, "(**)i"),
+	REG_NATIVE_FUNC(TEE_BigIntAbs, "(**)i"),
+	REG_NATIVE_FUNC(TEE_BigIntSquare, "(**)"),
+	REG_NATIVE_FUNC(TEE_BigIntDiv, "(****)"),
+	REG_NATIVE_FUNC(TEE_BigIntMod, "(***)"),
+	REG_NATIVE_FUNC(TEE_BigIntAddMod, "(****)"),
+	REG_NATIVE_FUNC(TEE_BigIntSubMod, "(****)"),
+	REG_NATIVE_FUNC(TEE_BigIntMulMod, "(****)"),
+	REG_NATIVE_FUNC(TEE_BigIntSquareMod, "(***)"),
+	REG_NATIVE_FUNC(TEE_BigIntInvMod, "(***)"),
+	REG_NATIVE_FUNC(TEE_BigIntExpMod, "(*****)i"),
+	REG_NATIVE_FUNC(TEE_BigIntRelativePrime, "(**)i"),
+	REG_NATIVE_FUNC(TEE_BigIntComputeExtendedGcd, "(*****)"),
+	REG_NATIVE_FUNC(TEE_BigIntIsProbablePrime, "(*i)i"),
+	REG_NATIVE_FUNC(TEE_BigIntConvertToFMM, "(****)"),
+	REG_NATIVE_FUNC(TEE_BigIntConvertFromFMM, "(****)"),
+	REG_NATIVE_FUNC(TEE_BigIntComputeFMM, "(*****)"),
+	REG_NATIVE_FUNC(TEE_BigIntGetBitCount, "(*)i"),
 };
 
 uint32_t
