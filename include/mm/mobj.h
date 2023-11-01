@@ -94,6 +94,23 @@ static inline void mobj_put(struct mobj *mobj)
 	}
 }
 
+/**
+ * mobj_put_wipe() - wipe and put a MOBJ
+ * @mobj:	Pointer to a MOBJ or NULL
+ *
+ * Clears the memory represented by the mobj and then puts it.
+ */
+static inline void mobj_put_wipe(struct mobj *mobj)
+{
+	if (mobj) {
+		void *buf = mobj_get_va(mobj, 0, mobj->size);
+
+		if (buf)
+			memzero_explicit(buf, mobj->size);
+		mobj_put(mobj);
+	}
+}
+
 extern struct mobj mobj_virt;
 extern struct mobj *mobj_sec_ddr;
 extern struct mobj *mobj_tee_ram_rx;

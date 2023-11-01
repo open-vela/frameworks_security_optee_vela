@@ -19,6 +19,8 @@
 
 #include <mm/vm.h>
 
+tee_mm_pool_t tee_mm_sec_ddr;
+
 TEE_Result vm_info_init(struct user_mode_ctx *uctx, struct ts_ctx *ts_ctx)
 {
 	return TEE_SUCCESS;
@@ -46,4 +48,18 @@ TEE_Result vm_map_param(struct user_mode_ctx *uctx, struct tee_ta_param *param,
 
 void vm_set_ctx(struct ts_ctx *ctx)
 {
+}
+
+/* return true only if buffer fits inside TA private memory */
+bool vm_buf_is_inside_um_private(const struct user_mode_ctx *uctx,
+				 const void *va, size_t size)
+{
+	return false;
+}
+
+TEE_Result vm_buf_to_mboj_offs(const struct user_mode_ctx *uctx,
+			       const void *va, size_t size,
+			       struct mobj **mobj, size_t *offs)
+{
+	return TEE_SUCCESS;
 }
