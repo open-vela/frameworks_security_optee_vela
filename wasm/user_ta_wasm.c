@@ -155,6 +155,7 @@ static TEE_Result wasm_copy_out_app_params(struct user_ta_wasm_ctx *utc,
 				if (p_cookie[n] != 0) {
 					memcpy(&param->u[n].mem.mobj->size, (const void *)p_cookie[n],
 							sizeof(uint32_t));
+					param->u[n].mem.size = param->u[n].mem.mobj->size;
 					memcpy(param->u[n].mem.mobj->buffer,
 							(const void *)(p_cookie[n] + sizeof(uint32_t)),
 							param->u[n].mem.mobj->size);
