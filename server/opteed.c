@@ -216,7 +216,7 @@ static void *optee_thread(void *arg)
 			uint32_t attr = param[i].attr & OPTEE_MSG_ATTR_TYPE_MASK;
 			if (attr == OPTEE_MSG_ATTR_TYPE_RMEM_OUTPUT ||
 			    attr == OPTEE_MSG_ATTR_TYPE_RMEM_INOUT) {
-				shm_tmp = (const void *)(uintptr_t)param[i].u.rmem.shm_ref;
+				shm_tmp = (void *)(uintptr_t)param[i].u.rmem.shm_ref;
 				/* Send inout and out data of shered memory */
 				ret = optee_send(connfd, shm_tmp,
 						 MIN(shm_size[i], param[i].u.rmem.size));
