@@ -16,10 +16,9 @@
  * limitations under the License.
  */
 
-#include <stdbool.h>
+#include <malloc.h>
 #include <stdlib.h>
-
-struct malloc_ctx {};
+#include <nuttx/mm/mm.h>
 
 void *raw_malloc(size_t hdr_size, size_t ftr_size, size_t pl_size,
 		 struct malloc_ctx *ctx)
