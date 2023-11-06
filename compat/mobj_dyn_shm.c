@@ -17,6 +17,7 @@
 
 #include <mm/mobj.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct mobj *mobj_reg_shm_get_by_cookie(uint64_t cookie)
 {

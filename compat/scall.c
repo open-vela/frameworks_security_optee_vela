@@ -18,6 +18,7 @@
 
 #include <kernel/scall.h>
 #include <kernel/panic.h>
+#include <tee/tee_svc.h>
 #include <tee/tee_svc_cryp.h>
 #include <tee/tee_svc_storage.h>
 #include <utee_syscalls.h>
