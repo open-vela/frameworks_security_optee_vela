@@ -315,8 +315,8 @@ TEE_RenamePersistentObject_wrapper(wasm_exec_env_t exec_env,
 static TEE_Result
 TEE_ReadObjectData_wrapper(wasm_exec_env_t exec_env,
 	TEE_ObjectHandle object,
-	void *buffer, uint32_t size,
-	uint32_t *count)
+	void *buffer, size_t size,
+	size_t *count)
 {
 	DMSG("wasm.libtee.%s\n", __func__);
 	wasm_module_inst_t module_inst = get_module_inst(exec_env);
@@ -445,9 +445,9 @@ static void TEE_GetObjectInfo_wrapper(
 	wasm_module_inst_t module_inst = get_module_inst(exec_env);
 
 	if (!validate_native_addr((void*)objectInfo, sizeof(uint32_t)))
-		return TEE_ERROR_BAD_PARAMETERS;
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
 
-	return TEE_GetObjectInfo(object, objectInfo);
+	TEE_GetObjectInfo(object, objectInfo);
 }
 
 static TEE_Result TEE_RestrictObjectUsage1_wrapper(
@@ -1172,8 +1172,8 @@ TEE_MACUpdate_wrapper(wasm_exec_env_t exec_env,
 /* 6.6.3 */
 static TEE_Result
 TEE_MACComputeFinal_wrapper(wasm_exec_env_t exec_env,
-	TEE_OperationHandle operation, const void *message, uint32_t messageLen,
-	void *mac, uint32_t *macLen)
+	TEE_OperationHandle operation, const void *message, size_t messageLen,
+	void *mac, size_t *macLen)
 {
 	DMSG("wasm.libtee.%s\n", __func__);
 	wasm_module_inst_t module_inst = get_module_inst(exec_env);
@@ -1230,8 +1230,8 @@ TEE_DigestUpdate_wrapper(wasm_exec_env_t exec_env,
 /* 6.3.2 */
 static TEE_Result
 TEE_DigestDoFinal_wrapper(wasm_exec_env_t exec_env,
-	TEE_OperationHandle operation, void *chunk, uint32_t chunkLen,
-	void *hash, uint32_t *hashLen)
+	TEE_OperationHandle operation, void *chunk, size_t chunkLen,
+	void *hash, size_t *hashLen)
 {
 	DMSG("wasm.libtee.%s\n", __func__);
 	wasm_module_inst_t module_inst = get_module_inst(exec_env);
@@ -1340,9 +1340,9 @@ TEE_AEInit_wrapper(wasm_exec_env_t exec_env,
 static TEE_Result
 TEE_AEEncryptFinal_wrapper(wasm_exec_env_t exec_env,
 	TEE_OperationHandle operation,
-	const void *srcData, uint32_t srcLen,
-	void *destData, uint32_t *destLen,
-	void *tag, uint32_t *tagLen)
+	const void *srcData, size_t srcLen,
+	void *destData, size_t *destLen,
+	void *tag, size_t *tagLen)
 {
 	DMSG("wasm.libtee.%s\n", __func__);
 	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
@@ -1372,9 +1372,9 @@ TEE_AEEncryptFinal_wrapper(wasm_exec_env_t exec_env,
 static TEE_Result
 TEE_AEDecryptFinal_wrapper(wasm_exec_env_t exec_env,
 	TEE_OperationHandle operation,
-	const void *srcData, uint32_t srcLen,
-	void *destData, uint32_t *destLen,
-	void *tag, uint32_t tagLen)
+	const void *srcData, size_t srcLen,
+	void *destData, size_t *destLen,
+	void *tag, size_t tagLen)
 {
 	DMSG("wasm.libtee.%s\n", __func__);
 	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
@@ -1401,7 +1401,7 @@ TEE_AEDecryptFinal_wrapper(wasm_exec_env_t exec_env,
 static TEE_Result
 TEE_GetObjectBufferAttribute_wrapper(wasm_exec_env_t exec_env,
 	TEE_ObjectHandle object, uint32_t attributeID,
-	void *buffer, uint32_t *size)
+	void *buffer, size_t *size)
 {
 	DMSG("wasm.libtee.%s\n", __func__);
 	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
@@ -1472,7 +1472,7 @@ TEE_CipherInit_wrapper(wasm_exec_env_t exec_env,
 static TEE_Result
 TEE_CipherUpdate_wrapper(wasm_exec_env_t exec_env,
 	TEE_OperationHandle operation, const void *srcData,
-	uint32_t srcLen, void *destData, uint32_t *destLen)
+	size_t srcLen, void *destData, size_t *destLen)
 {
 	DMSG("wasm.libtee.%s\n", __func__);
 	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
@@ -1494,7 +1494,7 @@ TEE_CipherUpdate_wrapper(wasm_exec_env_t exec_env,
 static TEE_Result
 TEE_CipherDoFinal_wrapper(wasm_exec_env_t exec_env,
 	TEE_OperationHandle operation, const void *srcData,
-	uint32_t srcLen, void *destData, uint32_t *destLen)
+	size_t srcLen, void *destData, size_t *destLen)
 {
 	DMSG("wasm.libtee.%s\n", __func__);
 	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
@@ -1689,9 +1689,9 @@ static void TEE_DeriveKey_wrapper(
 	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
 
 	if (!validate_native_addr((void*)params, paramCount))
-		return TEE_ERROR_BAD_PARAMETERS;
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
 
-	return TEE_DeriveKey(operation, params, paramCount, derivedKey);
+	TEE_DeriveKey(operation, params, paramCount, derivedKey);
 }
 
 static void TEE_AEUpdateAAD_wrapper(
@@ -1704,9 +1704,9 @@ static void TEE_AEUpdateAAD_wrapper(
 
 	/* srcData has been checked by runtime */
 	if (!validate_native_addr((void*)AADdata, AADdataLen))
-		return TEE_ERROR_BAD_PARAMETERS;
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
 
-	return TEE_AEUpdateAAD(operation, AADdata, AADdataLen);
+	TEE_AEUpdateAAD(operation, AADdata, AADdataLen);
 }
 
 static TEE_Result TEE_AEUpdate_wrapper(
@@ -1912,7 +1912,7 @@ static TEE_Result TEE_BigIntConvertToOctetString_wrapper(
 	DMSG("wasm.libtee.%s\n", __func__);
 	wasm_module_inst_t module_inst __unused = get_module_inst(exec_env);
 
-	if (!validate_native_addr((void*)buffer, bufferLen))
+	if (!validate_native_addr((void*)buffer, sizeof(uint32_t)))
 		return TEE_ERROR_BAD_PARAMETERS;
 
 	if (!validate_native_addr((void*)bigInt, sizeof(uint32_t)))
