@@ -29,7 +29,7 @@ TEE_Result tee_otp_get_hw_unique_key(struct tee_hw_unique_key *hwkey)
 	uint8_t tmp_key[CONFIG_BOARDCTL_UNIQUEKEY_SIZE];
 	int res = boardctl(BOARDIOC_UNIQUEKEY, (uintptr_t)tmp_key);
 
-	memset(hwkey, 0, sizeof(hwkey));
+	memset(hwkey, 0, sizeof(struct tee_hw_unique_key));
 	memcpy(&hwkey->data[0], tmp_key,
 	       MIN(CONFIG_BOARDCTL_UNIQUEKEY_SIZE, sizeof(hwkey->data)));
 
@@ -44,7 +44,7 @@ int tee_otp_get_die_id(uint8_t *buffer, size_t len)
 	uint8_t tmp[CONFIG_BOARDCTL_UNIQUEID_SIZE];
 
 	memset(buffer, 0, len);
-	res = boardctl(BOARDIOC_UNIQUEID, tmp);
+	res = boardctl(BOARDIOC_UNIQUEID, (uintptr_t)tmp);
 	memcpy(buffer, tmp, MIN(CONFIG_BOARDCTL_UNIQUEID_SIZE, len));
 
 	return res >= 0 ? TEE_SUCCESS : TEE_ERROR_GENERIC;
