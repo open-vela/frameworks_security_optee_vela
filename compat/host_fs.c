@@ -21,6 +21,7 @@
 #include <fcntl.h>
 #include <host_fs.h>
 #include <initcall.h>
+#include <libgen.h>
 #include <mm/mobj.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -159,18 +160,6 @@ static bool param_is_memref(struct thread_param *param)
 	}
 }
 
-static bool param_is_value(struct thread_param *param)
-{
-	switch (param->attr) {
-		case THREAD_PARAM_ATTR_VALUE_IN:
-		case THREAD_PARAM_ATTR_VALUE_OUT:
-		case THREAD_PARAM_ATTR_VALUE_INOUT:
-			return true;
-		default:
-			return false;
-	}
-}
-
 static void *convert_param_to_va(struct thread_param *param)
 {
 	if (!param_is_memref(param)) {
@@ -183,7 +172,7 @@ static void *convert_param_to_va(struct thread_param *param)
 static size_t get_memsize_from_param(struct thread_param *param)
 {
 	if (!param_is_memref(param)) {
-		return NULL;
+		return 0;
 	}
 
 	return param->u.memref.size;
@@ -192,7 +181,7 @@ static size_t get_memsize_from_param(struct thread_param *param)
 static void set_memsize(struct thread_param *param, size_t new_size)
 {
 	if (!param_is_memref(param)) {
-		return NULL;
+		return;
 	}
 
 	param->u.memref.size = new_size;
