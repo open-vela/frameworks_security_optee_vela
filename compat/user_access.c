@@ -18,16 +18,9 @@
 
 #include <kernel/user_access.h>
 #include <mm/vm.h>
+#include <string.h>
 #include <tee_api_types.h>
 #include <types_ext.h>
-
-static TEE_Result check_access(uint32_t flags, const void *uaddr, size_t len)
-{
-	struct ts_session *s = ts_get_current_session();
-
-	return vm_check_access_rights(to_user_mode_ctx(s->ctx), flags,
-					(vaddr_t)uaddr, len);
-}
 
 TEE_Result copy_from_user(void *kaddr, const void *uaddr, size_t len)
 {
