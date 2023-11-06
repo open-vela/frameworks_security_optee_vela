@@ -18,9 +18,17 @@
 #ifndef __CORE_MMU_ARCH_H
 #define __CORE_MMU_ARCH_H
 
-#define SMALL_PAGE_SHIFT	U(12)
+#include <types_ext.h>
 
+#define SMALL_PAGE_SHIFT	U(12)
 struct core_mmu_user_map {
 };
+
+
+
+static inline bool core_mmu_check_max_pa(paddr_t pa __maybe_unused)
+{
+    return true;
+}
 
 #endif /* __CORE_MMU_ARCH_H */
