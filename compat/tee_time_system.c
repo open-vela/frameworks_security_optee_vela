@@ -22,11 +22,11 @@
 
 static TEE_Result get_time_system(TEE_Time *time)
 {
-	struct timeval tv;
+	struct timespec tv;
 	if (!clock_gettime(CLOCK_MONOTONIC, &tv)) {
 		/* Convert the struct timespec to a struct TEE_Time */
 		time->seconds = tv.tv_sec;
-		time->millis = tv.tv_usec / 1000;
+		time->millis = tv.tv_nsec / 1000000;
 		return TEE_SUCCESS;
 	}
 	return TEE_ERROR_ACCESS_DENIED;
