@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+#include <stdio.h>
 #include <kernel/scall.h>
 #include <kernel/panic.h>
 #include <tee/tee_svc.h>
@@ -263,7 +264,7 @@ TEE_Result _utee_storage_obj_open(unsigned long storage_id,
 				  const void *object_id, size_t object_id_len,
 				  unsigned long flags, uint32_t *obj)
 {
-	return syscall_storage_obj_open(storage_id, object_id, object_id_len, flags, obj);
+	return syscall_storage_obj_open(storage_id, (void *)object_id, object_id_len, flags, obj);
 }
 
 TEE_Result _utee_storage_obj_create(unsigned long storage_id,
@@ -272,7 +273,7 @@ TEE_Result _utee_storage_obj_create(unsigned long storage_id,
 					unsigned long attr, const void *data,
 					size_t len, uint32_t *obj)
 {
-	return syscall_storage_obj_create(storage_id, object_id, object_id_len, flags, attr, data, len, obj);
+	return syscall_storage_obj_create(storage_id, (void *)object_id, object_id_len, flags, attr, (void *)data, len, obj);
 }
 
 TEE_Result _utee_storage_obj_del(unsigned long obj)
@@ -283,7 +284,7 @@ TEE_Result _utee_storage_obj_del(unsigned long obj)
 TEE_Result _utee_storage_obj_rename(unsigned long obj, const void *new_obj_id,
 					size_t new_obj_id_len)
 {
-	return syscall_storage_obj_rename(obj, new_obj_id, new_obj_id_len);
+	return syscall_storage_obj_rename(obj, (void *)new_obj_id, new_obj_id_len);
 }
 
 TEE_Result _utee_storage_obj_read(unsigned long obj, void *data, size_t len,
@@ -295,7 +296,7 @@ TEE_Result _utee_storage_obj_read(unsigned long obj, void *data, size_t len,
 TEE_Result _utee_storage_obj_write(unsigned long obj, const void *data,
 				   size_t len)
 {
-	return syscall_storage_obj_write(obj, data, len);
+	return syscall_storage_obj_write(obj, (void *)data, len);
 }
 
 TEE_Result _utee_storage_obj_trunc(unsigned long obj, size_t len)
@@ -316,5 +317,7 @@ TEE_Result _utee_get_time(unsigned long cat, TEE_Time *time)
 
 void _utee_panic(unsigned long code)
 {
-	__panic(code);
+	char buffer[10] = { 0 };
+	snprintf(buffer, sizeof(buffer), "%ld", code);
+	__panic(buffer);
 }
