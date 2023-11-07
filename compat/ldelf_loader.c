@@ -18,6 +18,7 @@
  */
 
 #include <ldelf.h>
+#include <kernel/user_mode_ctx_struct.h>
 
 TEE_Result ldelf_init_with_ldelf(struct ts_session *sess,
 				 struct user_mode_ctx *uctx)
