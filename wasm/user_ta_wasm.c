@@ -80,7 +80,7 @@ static TEE_Result wasm_copy_in_app_params(struct user_ta_wasm_ctx *utc,
 				       param->u[n].mem.mobj->buffer,
 				       param->u[n].mem.mobj->size);
 				} else {
-					EMSG("%08x : %lu\n", TEE_ERROR_OUT_OF_MEMORY, param->u[n].mem.mobj->size + sizeof(uint32_t));
+					EMSG("TEE out of memory: %zu\n", param->u[n].mem.mobj->size + sizeof(uint32_t));
 					res = TEE_ERROR_OUT_OF_MEMORY;
 					goto out;
 				}
