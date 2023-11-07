@@ -18,8 +18,11 @@
 #ifndef __MM_MOBJ_H
 #define __MM_MOBJ_H
 
+#include <stdlib.h>
 #include <tee_api_types.h>
 #include <optee_msg.h>
+#include <string_ext.h>
+#include <mm/tee_mm.h>
 
 struct mobj {
 	size_t size;
@@ -62,6 +65,11 @@ static inline TEE_Result mobj_dec_map(struct mobj *mobj)
 	return TEE_ERROR_GENERIC;
 }
 
+static inline struct mobj *mobj_get(struct mobj *mobj)
+{
+	return mobj;
+}
+
 /*
  * mobj_get_va() - get virtual address of a mapped mobj
  * @mobj:	memory object
@@ -77,6 +85,12 @@ static inline void *mobj_get_va(struct mobj *mobj, size_t offset, size_t len)
 	if (mobj)
 		return mobj->buffer;
 	return NULL;
+}
+
+static inline TEE_Result mobj_get_pa(struct mobj *mobj, size_t offs,
+				     size_t granule, paddr_t *pa)
+{
+	return TEE_ERROR_GENERIC;
 }
 
 /**
@@ -115,5 +129,14 @@ extern struct mobj mobj_virt;
 extern struct mobj *mobj_sec_ddr;
 extern struct mobj *mobj_tee_ram_rx;
 extern struct mobj *mobj_tee_ram_rw;
+
+struct mobj *mobj_reg_shm_get_by_cookie(uint64_t cookie);
+
+void mobj_reg_shm_unguard(struct mobj *mobj);
+
+TEE_Result mobj_reg_shm_release_by_cookie(uint64_t cookie);
+
+struct mobj *mobj_mm_alloc(struct mobj *mobj_parent, size_t size,
+			   tee_mm_pool_t *pool);
 
 #endif /*__MM_MOBJ_H*/
