@@ -15,19 +15,19 @@
  */
 
 #include <kernel/spinlock.h>
-#include <nuttx/spinlock.h>
+#include <stdatomic.h>
 
 void __cpu_spin_lock(unsigned int *lock)
 {
-	spin_lock(lock);
+	while (atomic_flag_test_and_set(lock));
 }
 
 void __cpu_spin_unlock(unsigned int *lock)
 {
-	spin_unlock(lock);
+	atomic_flag_clear(lock);
 }
 
 unsigned int __cpu_spin_trylock(unsigned int *lock)
 {
-	spin_trylock(lock);
+	return atomic_flag_test_and_set(lock);
 }
