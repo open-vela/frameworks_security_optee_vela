@@ -31,4 +31,6 @@ static inline bool core_mmu_check_max_pa(paddr_t pa __maybe_unused)
     return true;
 }
 
+typedef struct core_mmu_config core_mmu_config;
+
 #endif /* __CORE_MMU_ARCH_H */
