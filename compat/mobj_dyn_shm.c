@@ -21,15 +21,14 @@
 
 struct mobj *mobj_reg_shm_get_by_cookie(uint64_t cookie)
 {
-	struct mobj *obj = (struct mobj *)malloc(sizeof(struct mobj));
-	memset(obj, 0, sizeof(struct mobj));
-	obj->buffer = cookie;
+	struct mobj *obj = zalloc(sizeof(struct mobj));
+	obj->buffer = (void *)(uintptr_t)cookie;
 	return obj;
 }
 
 TEE_Result mobj_reg_shm_release_by_cookie(uint64_t cookie)
 {
-	struct mobj *obj = (struct mobj *)cookie;
+	struct mobj *obj = (struct mobj *)(uintptr_t)cookie;
 	if (obj) {
 		free(obj);
 		obj = NULL;
