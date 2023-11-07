@@ -38,19 +38,6 @@ struct mobj_mm {
 
 struct mobj mobj_virt = { .size = SIZE_MAX };
 
-static struct mobj_mm *to_mobj_mm(struct mobj *mobj)
-{
-	return container_of(mobj, struct mobj_mm, mobj);
-}
-
-static void mobj_mm_free(struct mobj *mobj)
-{
-	struct mobj_mm *m = to_mobj_mm(mobj);
-
-	free(m->mm);
-	free(m);
-}
-
 struct mobj *mobj_mm_alloc(struct mobj *mobj_parent, size_t size,
 			      tee_mm_pool_t *pool)
 {
