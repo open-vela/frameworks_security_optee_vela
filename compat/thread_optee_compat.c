@@ -21,7 +21,6 @@
 #include <tee/tee_cryp_utl.h>
 #include <tee/tee_fs_rpc.h>
 
-static bool thread_prealloc_rpc_cache;
 static unsigned int thread_rpc_pnum;
 
 static TEE_Result handle_fs_op(size_t num_params, struct thread_param *params) {
