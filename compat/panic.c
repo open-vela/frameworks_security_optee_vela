@@ -22,4 +22,5 @@
 void __do_panic(const char *file, const int line, const char *func,
 		const char *msg) {
 	PANIC_WITH_REGS(msg, NULL);
+	while(1);
 }
