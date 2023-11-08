@@ -33,13 +33,13 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <kernel/tee_misc.h>
-#include <kernel/user_ta_wasm.h>
+#include <kernel/user_ta.h>
 #include <mm/mobj.h>
 #include "wasm_export.h"
 
 static uint8_t wasm_runtime_init_flag = 0;
 
-static TEE_Result wasm_copy_in_app_params(struct user_ta_wasm_ctx *utc,
+static TEE_Result wasm_copy_in_app_params(struct user_ta_ctx *utc,
 					  uint32_t param_types,
 					  uint32_t *p, uint32_t *p_cookie,
 					  struct tee_ta_param *param)
@@ -129,7 +129,7 @@ out:
 	return res;
 }
 
-static TEE_Result wasm_copy_out_app_params(struct user_ta_wasm_ctx *utc,
+static TEE_Result wasm_copy_out_app_params(struct user_ta_ctx *utc,
 					  uint32_t param_types,
 					  uint32_t *p, uint32_t *p_cookie,
 					  struct tee_ta_param *param)
@@ -210,7 +210,7 @@ out:
 	return res;
 }
 
-static void wasm_free_app_params(struct user_ta_wasm_ctx *utc, uint32_t *p)
+static void wasm_free_app_params(struct user_ta_ctx *utc, uint32_t *p)
 {
 	for (int n = 0; n < 4; n++) {
 		/* it is runtime embedder's responsibility to release the memory,
@@ -234,7 +234,7 @@ static TEE_Result user_ta_wasm_enter_open_session(struct ts_session *s)
 	struct ts_session *ts_sess __maybe_unused = NULL;
 	uint32_t buffer_for_wasm = 0;
 
-	struct user_ta_wasm_ctx *utc = to_user_ta_wasm_ctx(s->ctx);
+	struct user_ta_ctx *utc = to_user_ta_ctx(s->ctx);
 	ts_push_current_session(s);
 	DMSG("context.ref_count: %ld\n", utc->ta_ctx.ref_count);
 
@@ -343,7 +343,7 @@ static TEE_Result user_ta_wasm_enter_invoke_cmd(struct ts_session *s, uint32_t c
 	/* fixed CID 209922, UNUSED_VALUE(res) */
 	TEE_Result res = TEE_ERROR_GENERIC;
 	TEE_Result wasm_res = TEE_ERROR_GENERIC;
-	struct user_ta_wasm_ctx *utc = to_user_ta_wasm_ctx(s->ctx);
+	struct user_ta_ctx *utc = to_user_ta_ctx(s->ctx);
 	struct tee_ta_session *ta_sess = to_ta_session(s);
 	struct ts_session *ts_sess __maybe_unused = NULL;
 	uint32_t ta_argv[7] = { 0 };
@@ -402,7 +402,7 @@ out:
 
 static void user_ta_wasm_enter_close_session(struct ts_session *s)
 {
-	struct user_ta_wasm_ctx *utc = to_user_ta_wasm_ctx(s->ctx);
+	struct user_ta_ctx *utc = to_user_ta_ctx(s->ctx);
 	uint32_t ta_argv[1];
 	struct ts_session *ts_sess __maybe_unused = NULL;
 	ts_push_current_session(s);
@@ -450,7 +450,7 @@ out:
 
 static void user_ta_wasm_ctx_destroy(struct ts_ctx *ctx)
 {
-	struct user_ta_wasm_ctx *utc = to_user_ta_wasm_ctx(ctx);
+	struct user_ta_ctx *utc = to_user_ta_ctx(ctx);
 
 	DMSG("context.ref_count: %ld\n", utc->ta_ctx.ref_count);
 	/*
@@ -538,7 +538,7 @@ static TEE_Result tee_ta_init_user_ta_wasm_session(const TEE_UUID *uuid __unused
 			struct tee_ta_session *s)
 {
 	TEE_Result res = TEE_ERROR_GENERIC;
-	struct user_ta_wasm_ctx *utc = NULL;
+	struct user_ta_ctx *utc = NULL;
 	char wasm_file[64] = { 0 };
 	uint32_t pos = WASM_FILE_TEMPLATE_DIR_SIZE;
 	uint32_t stack_size = 48 * 1024, heap_size = 32 * 1024;
@@ -555,9 +555,9 @@ static TEE_Result tee_ta_init_user_ta_wasm_session(const TEE_UUID *uuid __unused
 	DMSG("Open ta: %s\n", wasm_file);
 
 	/* Register context */
-	utc = calloc(1, sizeof(struct user_ta_wasm_ctx));
+	utc = calloc(1, sizeof(struct user_ta_ctx));
 	if (!utc) {
-		EMSG("%08x : %u\n", TEE_ERROR_OUT_OF_MEMORY, sizeof(struct user_ta_wasm_ctx));
+		EMSG("%08x : %u\n", TEE_ERROR_OUT_OF_MEMORY, sizeof(struct user_ta_ctx));
 		res = TEE_ERROR_OUT_OF_MEMORY;
 		goto out1;
 	}
