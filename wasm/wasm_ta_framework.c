@@ -30,12 +30,12 @@ uint32_t wasm_TA_CreateEntryPoint(uint32_t dummy)
 
 	DMSG("%s >>\n", __func__);
 	if (!user_ta || !user_ta->create_entry_point) {
-		EMSG("0x%08x\n", TEE_ERROR_BAD_PARAMETERS);
+		EMSG("TEE bad parameters\n");
 		return TEE_ERROR_BAD_PARAMETERS;
 	}
 
 	ret = user_ta->create_entry_point();
-	DMSG("%s ret: 0x%08x <<\n", __func__, ret);
+	DMSG("%s ret: 0x%08" PRIx32 " <<\n", __func__, ret);
 	return ret;
 }
 
@@ -43,7 +43,7 @@ void wasm_TA_DestroyEntryPoint(void)
 {
 	DMSG("%s >>\n", __func__);
 	if (!user_ta || !user_ta->destroy_entry_point) {
-		EMSG("0x%08x\n", TEE_ERROR_BAD_PARAMETERS);
+		EMSG("TEE bad parameters\n");
 		return;
 	}
 
@@ -80,7 +80,7 @@ static TEE_Result wasm_copy_in_params(uint32_t param_types, uint32_t *p, TEE_Par
 			params[n].value.b =*((uint32_t *)(p[n] + 4));
 			break;
 		default:
-			EMSG("%08x : 0x%08x\n", TEE_ERROR_ITEM_NOT_FOUND, type);
+			EMSG("TEE item not found: 0x%08" PRIx32 "\n", type);
 			return TEE_ERROR_ITEM_NOT_FOUND;
 		}
 	}
@@ -133,7 +133,7 @@ TEE_Result wasm_TA_OpenSessionEntryPoint(uint32_t param_types,
 
 	ret = wasm_copy_in_params(param_types, _pl, params);
 	if (ret != TEE_SUCCESS) {
-		EMSG("%08x : 0x%08x\n", TEE_ERROR_GENERIC, ret);
+		EMSG("TEE generic error: 0x%08" PRIx32 "\n", ret);
 		goto out;
 	}
 
@@ -142,13 +142,13 @@ TEE_Result wasm_TA_OpenSessionEntryPoint(uint32_t param_types,
 	wasm_copy_out_params(param_types, _pl, params);
 
 	if (ret != TEE_SUCCESS) {
-		EMSG("%08x : 0x%08x\n", TEE_ERROR_GENERIC, ret);
+		EMSG("TEE generic error: 0x%08" PRIx32 "\n", ret);
 		goto out;
 	}
 
 	*sess_ctx = (uint32_t)ctx;
 out:
-	DMSG("%s ret: 0x%08x <<\n", __func__, ret);
+	DMSG("%s ret: 0x%08" PRIx32 " <<\n", __func__, ret);
 	return ret;
 }
 
@@ -156,7 +156,7 @@ void wasm_TA_CloseSessionEntryPoint(uint32_t sess_ctx)
 {
 	DMSG("%s >>\n", __func__);
 	if (!user_ta || !user_ta->close_session_entry_point) {
-		EMSG("0x%08x\n", TEE_ERROR_BAD_PARAMETERS);
+		EMSG("TEE bad parameters\n");
 		return;
 	}
 
@@ -183,7 +183,7 @@ TEE_Result wasm_TA_InvokeCommandEntryPoint(uint32_t sess_ctx, uint32_t cmd_id,
 
 	ret = wasm_copy_in_params(param_types, _pl, params);
 	if (ret != TEE_SUCCESS) {
-		EMSG("%08x : 0x%08x\n", TEE_ERROR_GENERIC, ret);
+		EMSG("TEE generic error: 0x%08" PRIx32 "\n", ret);
 		goto out;
 	}
 
@@ -193,11 +193,11 @@ TEE_Result wasm_TA_InvokeCommandEntryPoint(uint32_t sess_ctx, uint32_t cmd_id,
 	wasm_copy_out_params(param_types, _pl, params);
 
 	if (ret != TEE_SUCCESS) {
-		EMSG("%08x : 0x%08x\n", TEE_ERROR_GENERIC, ret);
+		EMSG("TEE generic error: 0x%08" PRIx32 "\n", ret);
 		goto out;
 	}
 
 out:
-	DMSG("%s ret: 0x%08x <<\n", __func__, ret);
+	DMSG("%s ret: 0x%08" PRIx32 " <<\n", __func__, ret);
 	return ret;
 }
