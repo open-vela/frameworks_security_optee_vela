@@ -23,6 +23,10 @@
 
 struct malloc_ctx {};
 
+#define nex_free(ptr) free(ptr)
+#define nex_malloc(size) malloc(size)
+#define nex_calloc(nmemb, size) calloc(nmemb, size)
+
 void *raw_calloc(size_t hdr_size, size_t ftr_size, size_t pl_nmemb,
 		 size_t pl_size, struct malloc_ctx *ctx);
 void *raw_malloc(size_t hdr_size, size_t ftr_size, size_t pl_size,
