@@ -19,8 +19,6 @@
 
 #include <mm/vm.h>
 
-tee_mm_pool_t tee_mm_sec_ddr;
-
 TEE_Result vm_info_init(struct user_mode_ctx *uctx, struct ts_ctx *ts_ctx)
 {
 	return TEE_SUCCESS;
