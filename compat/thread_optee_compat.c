@@ -18,10 +18,36 @@
 #include <host_fs.h>
 #include <optee_msg.h>
 #include <optee_rpc_cmd.h>
+#include <rpmb_fs.h>
+#include <mm/mobj.h>
 #include <tee/tee_cryp_utl.h>
 #include <tee/tee_fs_rpc.h>
 
 static unsigned int thread_rpc_pnum;
+
+static TEE_Result handle_rpmb_op(size_t num_params, struct thread_param *params) {
+	TEE_Result res;
+	struct rpmb_req * req;
+	if (num_params == 0) {
+		return TEE_ERROR_BAD_PARAMETERS;
+	}
+
+	req = (struct rpmb_req *)params[0].u.memref.mobj->buffer;
+	unsigned int cmd = req->cmd;
+	switch (cmd) {
+		case RPMB_CMD_DATA_REQ:
+			res = rpmb_data_request(num_params, params);
+			break;
+		case RPMB_CMD_GET_DEV_INFO:
+			res = rpmb_get_dev_info(num_params, params);
+			break;
+		default:
+			res = TEE_ERROR_NOT_IMPLEMENTED;
+			break;
+	}
+
+	return res;
+}
 
 static TEE_Result handle_fs_op(size_t num_params, struct thread_param *params) {
 	TEE_Result res;
@@ -78,7 +104,7 @@ uint32_t thread_rpc_cmd(uint32_t cmd, size_t num_params,
 			res = TEE_ERROR_NOT_SUPPORTED;
 			break;
 		case OPTEE_RPC_CMD_RPMB:
-			res = TEE_ERROR_NOT_SUPPORTED;
+			res = handle_rpmb_op(num_params, params);
 			break;
 		case OPTEE_RPC_CMD_FS:
 			res = handle_fs_op(num_params, params);
@@ -93,3 +119,36 @@ uint32_t thread_rpc_cmd(uint32_t cmd, size_t num_params,
 
 	return res;
 }
+
+void thread_rpc_free_payload(struct mobj *mobj)
+{
+	if (mobj == NULL) {
+		return;
+	}
+
+	if (mobj->buffer != NULL) {
+		free(mobj->buffer);
+	}
+
+	free(mobj);
+}
+
+struct mobj *thread_rpc_alloc_payload(size_t size)
+{
+	struct mobj * obj = (struct mobj *)malloc(sizeof(struct mobj));
+	if (obj == NULL) {
+		goto out;
+	}
+
+	obj->buffer = malloc(size);
+	if (obj->buffer == NULL) {
+		free(obj);
+		goto out;
+	}
+
+	obj->size = size;
+
+out:
+	return obj;
+}
+
