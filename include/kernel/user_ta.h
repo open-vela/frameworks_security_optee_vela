@@ -17,7 +17,7 @@
 #include <tee_api_types.h>
 #include <types_ext.h>
 #include <util.h>
-#ifdef CONFIG_USER_TA_WASM
+#ifdef USER_TA_WASM
 #include <user_ta_wasm_header.h>
 #include <wasm_export.h>
 #endif
@@ -45,7 +45,7 @@ struct user_ta_ctx {
 	void *ta_time_offs;
 	struct user_mode_ctx uctx;
 	struct tee_ta_ctx ta_ctx;
-#ifdef CONFIG_USER_TA_WASM
+#ifdef USER_TA_WASM
 	/* the following fileds are for wasm ta implementation */
 	wasm_module_t wasm_module;
 	wasm_module_inst_t wasm_module_inst;
