@@ -15,9 +15,9 @@
  */
 
 #include <ctype.h>
-#include <mbedtls/md_internal.h>
 #include <mbedtls/md.h>
 #include <hmac_memory.h>
+#include <md_wrap.h>
 
 #define MAX_HASH_NAME_LEN 32
 
