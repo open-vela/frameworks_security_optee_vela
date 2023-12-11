@@ -25,6 +25,7 @@
 
 static unsigned int thread_rpc_pnum;
 
+#ifdef CONFIG_OPTEE_RPMB_FS
 static TEE_Result handle_rpmb_op(size_t num_params, struct thread_param *params) {
 	TEE_Result res;
 	struct rpmb_req * req;
@@ -48,6 +49,7 @@ static TEE_Result handle_rpmb_op(size_t num_params, struct thread_param *params)
 
 	return res;
 }
+#endif
 
 static TEE_Result handle_fs_op(size_t num_params, struct thread_param *params) {
 	TEE_Result res;
@@ -103,9 +105,11 @@ uint32_t thread_rpc_cmd(uint32_t cmd, size_t num_params,
 		case OPTEE_RPC_CMD_LOAD_TA:
 			res = TEE_ERROR_NOT_SUPPORTED;
 			break;
+#ifdef CONFIG_OPTEE_RPMB_FS
 		case OPTEE_RPC_CMD_RPMB:
 			res = handle_rpmb_op(num_params, params);
 			break;
+#endif
 		case OPTEE_RPC_CMD_FS:
 			res = handle_fs_op(num_params, params);
 			break;
