@@ -75,7 +75,6 @@ TEE_Result huk_subkey_derive(enum huk_subkey_usage usage __unused,
 	struct tee_hw_unique_key huk;
 	uint8_t chip_id[TEE_FS_KM_CHIP_ID_LENGTH];
 	uint8_t message[sizeof(chip_id) + sizeof(string_for_ssk_gen)];
-	uint32_t default_key = 0;
 
 	/* Secure Storage Key Generation:
 	 *
