@@ -20,6 +20,72 @@
 #if defined(CFG_OTP_SUPPORT)
 #include <sys/boardctl.h>
 
+#if defined(CONFIG_OPTEE_COMPAT_MITEE_FS)
+
+#include <tee_otp_compat.h>
+
+TEE_Result tee_otp_get_hw_unique_key_compat(struct tee_hw_unique_key *hwkey,
+			uint8_t *default_key)
+{
+	uint8_t tmp_key[CONFIG_BOARDCTL_UNIQUEKEY_SIZE];
+	int res = boardctl(BOARDIOC_UNIQUEKEY, (uintptr_t)tmp_key);
+	memset(hwkey, 0, sizeof(struct tee_hw_unique_key));
+#if defined(CFG_OTP_SUPPORT_NO_PROVISION_TMP)
+	{
+		uint8_t no_provision[HW_UNIQUE_KEY_LENGTH];
+
+		memset(no_provision, 0xFF, sizeof(no_provision));
+
+		if(!memcmp(tmp_key, no_provision, HW_UNIQUE_KEY_LENGTH)) { /* first 16 bytes */
+			/* set default huk */
+			memset(&hwkey->data[0], 0, sizeof(hwkey->data));
+			*default_key = 1;
+		} else {
+			memcpy(&hwkey->data[0], tmp_key, sizeof(hwkey->data));
+			*default_key = 0;
+		}
+	}
+#else
+	memcpy(&hwkey->data[0], tmp_key,
+	       MIN(CONFIG_BOARDCTL_UNIQUEKEY_SIZE, sizeof(hwkey->data)));
+#endif
+
+	return res >= 0 ? TEE_SUCCESS : TEE_ERROR_GENERIC;
+}
+
+#ifdef CONFIG_BOARDCTL_UNIQUEID
+
+int tee_otp_get_die_id_compat(uint8_t *buffer, size_t len, uint8_t default_key)
+{
+	int res;
+	uint8_t tmp[CONFIG_BOARDCTL_UNIQUEID_SIZE];
+
+	memset(buffer, 0, len);
+	res = boardctl(BOARDIOC_UNIQUEID, (uintptr_t)tmp);
+#if defined(CFG_OTP_SUPPORT_NO_PROVISION_TMP)
+	if (default_key) {
+		/* failed to fetch the device unique id, use the fake value*/
+		size_t i;
+
+		char pattern[4] = { 'B', 'E', 'E', 'F' };
+		for (i = 0; i < len; i++) {
+			buffer[i] = pattern[i % 4];
+		}
+	} else {
+		/* fetch the device unique id success, use it directly */
+		memcpy(buffer, tmp, MIN(CONFIG_BOARDCTL_UNIQUEID_SIZE, len));
+	}
+#else
+	memcpy(buffer, tmp, MIN(CONFIG_BOARDCTL_UNIQUEID_SIZE, len));
+#endif
+
+	return res >= 0 ? TEE_SUCCESS : TEE_ERROR_GENERIC;
+}
+
+#endif /* CONFIG_BOARDCTL_UNIQUEID */
+
+#else
+
 /* this method is override from otp_stubs.c#tee_otp_get_hw_unique_key()
  * the tee will use the following the implementation only when CFG_OTP_SUPPORT
  * configuration is enabled
@@ -28,24 +94,9 @@ TEE_Result tee_otp_get_hw_unique_key(struct tee_hw_unique_key *hwkey)
 {
 	uint8_t tmp_key[CONFIG_BOARDCTL_UNIQUEKEY_SIZE];
 	int res = boardctl(BOARDIOC_UNIQUEKEY, (uintptr_t)tmp_key);
-#if defined(CONFIG_OPTEE_COMPAT_MITEE_FS) && defined(CFG_OTP_SUPPORT_NO_PROVISION_TMP)
-	{
-		uint8_t no_provision[HW_UNIQUE_KEY_LENGTH];
-
-		memset(no_provision, 0xFF, sizeof(no_provision));
-
-		if(!memcmp(tmp_key, no_provision, HW_UNIQUE_KEY_LENGTH)) { //first 16 bytes
-			/* set default huk */
-			memset(&hwkey->data[0], 0, sizeof(hwkey->data));
-		} else {
-			memcpy(&hwkey->data[0], tmp_key, sizeof(hwkey->data));
-		}
-	}
-#else
 	memset(hwkey, 0, sizeof(struct tee_hw_unique_key));
 	memcpy(&hwkey->data[0], tmp_key,
 	       MIN(CONFIG_BOARDCTL_UNIQUEKEY_SIZE, sizeof(hwkey->data)));
-#endif
 
 	return res >= 0 ? TEE_SUCCESS : TEE_ERROR_GENERIC;
 }
@@ -59,20 +110,13 @@ int tee_otp_get_die_id(uint8_t *buffer, size_t len)
 
 	memset(buffer, 0, len);
 	res = boardctl(BOARDIOC_UNIQUEID, (uintptr_t)tmp);
-#if defined(CONFIG_OPTEE_COMPAT_MITEE_FS) && defined(CFG_OTP_SUPPORT_NO_PROVISION_TMP)
-	size_t i;
-
-	char pattern[4] = { 'B', 'E', 'E', 'F' };
-	for (i = 0; i < len; i++) {
-		buffer[i] = pattern[i % 4];
-	}
-#else
 	memcpy(buffer, tmp, MIN(CONFIG_BOARDCTL_UNIQUEID_SIZE, len));
-#endif
 
 	return res >= 0 ? TEE_SUCCESS : TEE_ERROR_GENERIC;
 }
 
 #endif /* CONFIG_BOARDCTL_UNIQUEID */
+
+#endif /* CONFIG_OPTEE_COMPAT_MITEE_FS */
 
 #endif /* CFG_OTP_SUPPORT */

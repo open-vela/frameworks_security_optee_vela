@@ -18,8 +18,8 @@
 #include <config.h>
 #include <crypto/crypto.h>
 #include <kernel/huk_subkey.h>
-#include <kernel/tee_common_otp.h>
 #include <string_ext.h>
+#include <tee_otp_compat.h>
 #include <tee/tee_fs_key_manager.h>
 
 static uint8_t string_for_ssk_gen[] = "ONLY_FOR_tee_fs_ssk";
@@ -75,14 +75,15 @@ TEE_Result huk_subkey_derive(enum huk_subkey_usage usage __unused,
 	struct tee_hw_unique_key huk;
 	uint8_t chip_id[TEE_FS_KM_CHIP_ID_LENGTH];
 	uint8_t message[sizeof(chip_id) + sizeof(string_for_ssk_gen)];
+	uint8_t default_key = 0;
 
 	/* Secure Storage Key Generation:
 	 *
 	 *     SSK = HMAC(HUK, message)
 	 *     message := concatenate(chip_id, static string)
 	 */
-	tee_otp_get_hw_unique_key(&huk);
-	tee_otp_get_die_id(chip_id, sizeof(chip_id));
+	tee_otp_get_hw_unique_key_compat(&huk, &default_key);
+	tee_otp_get_die_id_compat(chip_id, sizeof(chip_id), default_key);
 
 	memcpy(message, chip_id, sizeof(chip_id));
 	memcpy(message + sizeof(chip_id), string_for_ssk_gen,
