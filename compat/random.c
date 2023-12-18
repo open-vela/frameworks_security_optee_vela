@@ -26,6 +26,9 @@ TEE_Result hw_get_random_bytes(void *buf, size_t blen)
 		return TEE_ERROR_BAD_PARAMETERS;
 
 	ret = getrandom(buf, blen, GRND_RANDOM);
+	if (ret < 0)
+		ret = getrandom(buf, blen, 0);
+
 	if (ret > 0)
 		return TEE_SUCCESS;
 
