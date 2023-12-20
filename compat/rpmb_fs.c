@@ -32,6 +32,7 @@
 /* Request */
 #define RPMB_REQ_DATA(req) ((void *)((struct rpmb_req *)(req) + 1))
 #define RPMB_CID_SZ 16
+#define RPMB_DATA_FRAME_SIZE 512
 
 /* Response to device info request */
 struct rpmb_dev_info {
@@ -335,17 +336,17 @@ static uint32_t read_cid(uint16_t dev_id, uint8_t *cid)
 	return res;
 }
 
-static TEE_Result read_extcsd(int fd, __u8 *ext_csd)
+static TEE_Result read_extcsd(int fd, uint8_t *ext_csd)
 {
 	TEE_Result res = TEE_SUCCESS;
 	struct mmc_ioc_cmd idata;
 	memset(&idata, 0, sizeof(idata));
-	memset(ext_csd, 0, sizeof(__u8) * 512);
+	memset(ext_csd, 0, RPMB_DATA_FRAME_SIZE);
 	idata.write_flag = 0;
 	idata.opcode = MMC_SEND_EXT_CSD;
 	idata.arg = 0;
 	idata.flags = MMC_RSP_SPI_R1 | MMC_RSP_R1 | MMC_CMD_ADTC;
-	idata.blksz = 512;
+	idata.blksz = RPMB_DATA_FRAME_SIZE;
 	idata.blocks = 1;
 	mmc_ioc_cmd_set_data(idata, ext_csd);
 
@@ -359,7 +360,7 @@ static TEE_Result read_extcsd(int fd, __u8 *ext_csd)
 static uint32_t rpmb_get_dev_info_internal(uint16_t dev_id, struct rpmb_dev_info *info)
 {
 	TEE_Result res = TEE_SUCCESS;
-	__u8 ext_csd[512];
+	uint8_t ext_csd[RPMB_DATA_FRAME_SIZE];
 	int fd;
 
 	fd = mmc_rpmb_fd(dev_id);
