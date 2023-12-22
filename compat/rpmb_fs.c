@@ -158,7 +158,7 @@ static int mmc_rpmb_fd(uint16_t dev_id)
 	DMSG("dev_id = %u", dev_id);
 	if (fd < 0) {
 #ifdef CONFIG_BLK_RPMSG
-		rpmsgblk_register("ap", "/dev/mmcsd0rpmb", NULL);
+		rpmsgblk_register(CONFIG_OPTEE_RPMB_REMOTE_CPU, "/dev/mmcsd0rpmb", NULL);
 #endif
 		snprintf(path, sizeof(path), "/dev/mmcsd%urpmb", dev_id);
 		fd = open(path, O_RDWR);
