@@ -1,6 +1,4 @@
 /*
- * Copyright (c) 2016, Linaro Limited
- * Copyright (c) 2014, STMicroelectronics International N.V.
  * Copyright (C) 2020-2023 Xiaomi Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,16 +14,13 @@
  * limitations under the License.
  */
 
-#include <kernel/panic.h>
-#include <assert.h>
+#include <kernel/spinlock.h>
 
-void __do_panic(const char *file, const int line, const char *func,
-		const char *msg)
+void spinlock_count_incr(void) {}
+
+void spinlock_count_decr(void) {}
+
+bool have_spinlock(void)
 {
-#if defined(CFG_TEE_CORE_DEBUG)
-	EMSG("%s, %d, %s, %s\n", file, line, func, msg);
-#else
-	PANIC_WITH_REGS(msg, NULL);
-	while(1);
-#endif
+    return false;
 }
