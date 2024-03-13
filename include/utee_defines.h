@@ -21,6 +21,20 @@
 
 #include_next <utee_defines.h>
 
+/* In devices that have already been deployed by using mitee, the
+ * length of HUK is fixed at 16. If we set the length of HUK to be
+ * the same as CONFIG_BOARDCTL_UNIQUEKEY_SIZE, then the FEK constructed
+ * based on this HUK will not be able to decrypt the pre-set "TRIAD"
+ * in the devices that have already been implemented using mitee.
+ * Therefore, for devices that have already been released, it is
+ * recommended to directly set the length of HWUNIQUE_KEY_LENGTH to 16
+ * to ensure that they can work properly and avoid the problem of
+ * being unable to decrypt the "TRIAD" in already deployed devices
+ * that using mitee.
+ */
+
+#ifndef CONFIG_OPTEE_COMPAT_MITEE_FS
+
 /* the HW_UNIQUE_KEY_LENGTH could be large than 16, so in order to compat
  * with the true device implementation, we need to keep the value of
  * HW_UNIQUE_KEY_LENGTH same as CONFIG_BOARDCTL_UNIQUEKEY_SIZE
@@ -33,6 +47,8 @@
 #else
 #error "the value of CONFIG_BOARDCTL_UNIQUEKEY_SIZE too large"
 #endif
+#endif
+
 #endif
 
 #endif /* UTEE_DEFINES_COMPAT_H */
