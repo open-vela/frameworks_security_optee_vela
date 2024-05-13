@@ -238,8 +238,10 @@ static TEE_Result user_ta_wasm_enter_open_session(struct ts_session *s)
 	ts_push_current_session(s);
 	DMSG("context.ref_count: %ld\n", utc->ta_ctx.ref_count);
 
-	/* call create entry point if first open session */
-	if (utc->ta_ctx.ref_count == 1) {
+	/* call create entry point if first open session, or when the session is re-opened
+	 * but the utc->func is not inited, we need to perform the init action
+	 */
+	if (utc->ta_ctx.ref_count == 1 || !utc->func) {
 		/* call create entry point if first open session */
 		/* lookup a WASM function by its name. The function signature can NULL here */
 		utc->func = wasm_runtime_lookup_function(utc->wasm_module_inst,
