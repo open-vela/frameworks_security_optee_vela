@@ -54,12 +54,12 @@ void thread_unmask_exceptions(uint32_t state)
 	up_irq_restore(state);
 }
 
-short int thread_get_id(void)
+int thread_get_id(void)
 {
 	return gettid();
 }
 
-short int thread_get_id_may_fail(void)
+int thread_get_id_may_fail(void)
 {
 	return gettid();
 }
