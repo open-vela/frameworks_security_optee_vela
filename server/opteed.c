@@ -99,7 +99,8 @@ static int optee_recv(int fd, void *msg, size_t size)
 	while (size > 0) {
 		ssize_t n = recv(fd, msg, size, 0);
 		if (n <= 0) {
-			EMSG("recv failed(%d)\n", errno);
+			if (n < 0)
+				EMSG("recv failed(%d)\n", errno);
 			return -1;
 		}
 
