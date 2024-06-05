@@ -19,6 +19,22 @@
 
 TEE_Result notif_wait(uint32_t value)
 {
+	/* This notif_wait(uint32_t) function is the core part of
+	 * wq_wait_final() function, and the wq_wait_final() function will using
+	 * this function to implement wait for the lock become available.
+	 * So if we left current function implementation empty,
+	 * then the wq_wait_final() function will enter busy-loop, and
+	 * current thread will block execution.
+	 * So in order to wait for the lock become available, we need to
+	 * yield current cpu out, we could perform this by calling print syslog
+	 * (the syslog in TEE is implemented by syslog-rpmsg, and invoke syslog
+	 * will make current TEE switch to REE, thus yield current cpu out),
+	 * or just perform some sleep, which could also yield current cpu out.
+	 *
+	 * The following yield cpu implementation is referred to:
+	 * openamp/libmetal/lib/processor/arm/cpu.h$metal_cpu_yield() function
+	 */
+	usleep(1000);
 	return TEE_SUCCESS;
 }
 
