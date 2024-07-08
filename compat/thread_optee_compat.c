@@ -147,6 +147,7 @@ struct mobj *thread_rpc_alloc_payload(size_t size)
 	obj->buffer = malloc(size);
 	if (obj->buffer == NULL) {
 		free(obj);
+		obj = NULL;
 		goto out;
 	}
 
