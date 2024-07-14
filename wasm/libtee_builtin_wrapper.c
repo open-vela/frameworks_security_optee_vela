@@ -948,9 +948,8 @@ TEE_AllocateTransientObject_wrapper(wasm_exec_env_t exec_env,
 	DMSG("wasm.libtee.%s\n", __func__);
 	wasm_module_inst_t module_inst = get_module_inst(exec_env);
 
-	/* CID 209898, SIZEOF_MISMATCH. No problem. */
 	/* object has been checked by runtime */
-	if (!validate_native_addr((void*)object, sizeof(TEE_ObjectHandle *)))
+	if (!validate_native_addr((void*)object, sizeof(TEE_ObjectHandle)))
 		return TEE_ERROR_BAD_PARAMETERS;
 
 	return TEE_AllocateTransientObject(objectType, maxKeySize, object);
@@ -1101,7 +1100,7 @@ TEE_AllocateOperation_wrapper(wasm_exec_env_t exec_env,
 	wasm_module_inst_t module_inst = get_module_inst(exec_env);
 
 	/* operation has been checked by runtime */
-	if (!validate_native_addr((void*)operation, sizeof(TEE_OperationHandle *)))
+	if (!validate_native_addr((void*)operation, sizeof(TEE_OperationHandle)))
 		return TEE_ERROR_BAD_PARAMETERS;
 
 	DMSG("algorithm: 0x%08lx, mode: 0x%08lx, maxKeySize: %ld\n", algorithm, mode, maxKeySize);
