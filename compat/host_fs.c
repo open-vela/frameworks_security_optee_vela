@@ -43,7 +43,7 @@ static void fs_fsync(void)
 	int fd = 0;
 
 	fd = open(tee_fs_root, O_RDONLY | O_DIRECTORY);
-	if (fd > 0) {
+	if (fd >= 0) {
 		fsync(fd);
 		close(fd);
 	}
