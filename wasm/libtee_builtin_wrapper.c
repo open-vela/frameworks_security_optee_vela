@@ -41,8 +41,8 @@ wasm_runtime_get_llvm_stack(wasm_module_inst_t module);
 void
 wasm_runtime_set_llvm_stack(wasm_module_inst_t module, uint32_t llvm_stack);
 
-uint32_t
-wasm_runtime_module_realloc(wasm_module_inst_t module, uint32_t ptr, uint32_t size,
+uint64_t
+wasm_runtime_module_realloc(wasm_module_inst_t module, uint64_t ptr, uint64_t size,
 				void **p_native_addr);
 
 #define get_module_inst(exec_env) \
@@ -1020,7 +1020,7 @@ tee_attribute_native2wasm(wasm_module_inst_t module_inst,
 		attr_app->content.value.b = attr_native->content.value.b;
 	} else {
 		if (attr_native->content.ref.buffer) {
-			attr_app->content.ref.buffer = (void *)addr_native_to_app(attr_native->content.ref.buffer);
+			attr_app->content.ref.buffer = (void *)(uintptr_t)addr_native_to_app(attr_native->content.ref.buffer);
 			DMSG("convert native address 0x%08lx to app address 0x%08lx\n",
 				(uint32_t)attr_native->content.ref.buffer, (uint32_t)attr_app->content.ref.buffer);
 		} else {
