@@ -243,9 +243,9 @@ static TEE_Result user_ta_wasm_enter_open_session(struct ts_session *s)
 	 */
 	if (utc->ta_ctx.ref_count == 1 || !utc->func) {
 		/* call create entry point if first open session */
-		/* lookup a WASM function by its name. The function signature can NULL here */
+		/* lookup a WASM function by its name. */
 		utc->func = wasm_runtime_lookup_function(utc->wasm_module_inst,
-				"wasm_TA_CreateEntryPoint", NULL);
+				"wasm_TA_CreateEntryPoint");
 		if (!utc->func) {
 			EMSG("%08x\n", TEE_ERROR_GENERIC);
 			res = TEE_ERROR_GENERIC;
@@ -267,9 +267,9 @@ static TEE_Result user_ta_wasm_enter_open_session(struct ts_session *s)
 		goto out;
 	}
 
-	/* lookup a WASM function by its name. The function signature can NULL here */
+	/* lookup a WASM function by its name. */
 	utc->func = wasm_runtime_lookup_function(utc->wasm_module_inst,
-			 "wasm_TA_OpenSessionEntryPoint", NULL);
+			"wasm_TA_OpenSessionEntryPoint");
 	if(!utc->func) {
 		EMSG("%08x\n", TEE_ERROR_GENERIC);
 		res = TEE_ERROR_GENERIC;
@@ -353,10 +353,10 @@ static TEE_Result user_ta_wasm_enter_invoke_cmd(struct ts_session *s, uint32_t c
 
 	ts_push_current_session(s);
 
-	/* lookup a WASM function by its name. The function signature can NULL here */
+	/* lookup a WASM function by its name. */
 	utc->func = wasm_runtime_lookup_function(utc->wasm_module_inst,
-			 "wasm_TA_InvokeCommandEntryPoint", NULL);
- 	if(!utc->func) {
+			"wasm_TA_InvokeCommandEntryPoint");
+	if(!utc->func) {
 		EMSG("%08x\n", TEE_ERROR_GENERIC);
 		res = TEE_ERROR_GENERIC;
 		goto out;
@@ -409,9 +409,9 @@ static void user_ta_wasm_enter_close_session(struct ts_session *s)
 	struct ts_session *ts_sess __maybe_unused = NULL;
 	ts_push_current_session(s);
 
-	/* lookup a WASM function by its name. The function signature can NULL here */
+	/* lookup a WASM function by its name. */
 	utc->func = wasm_runtime_lookup_function(utc->wasm_module_inst,
-			 "wasm_TA_CloseSessionEntryPoint", NULL);
+			"wasm_TA_CloseSessionEntryPoint");
 	if (!utc->func) {
 		EMSG("%08x\n", TEE_ERROR_GENERIC);
 		goto out;
@@ -430,9 +430,9 @@ static void user_ta_wasm_enter_close_session(struct ts_session *s)
 	DMSG("context.ref_count: %ld\n", utc->ta_ctx.ref_count);
 	/* call destory entry point if last opened session */
 	if (utc->ta_ctx.ref_count == 1) {
-		/* lookup a WASM function by its name. The function signature can NULL here */
+		/* lookup a WASM function by its name. */
 		utc->func = wasm_runtime_lookup_function(utc->wasm_module_inst,
-					"wasm_TA_DestroyEntryPoint", NULL);
+					"wasm_TA_DestroyEntryPoint");
 		if (!utc->func) {
 			EMSG("%08x\n", TEE_ERROR_GENERIC);
 			goto out;
