@@ -16,6 +16,7 @@
 
 #include <trace.h>
 #include <syslog.h>
+#include <nuttx/arch.h>
 #include <nuttx/sched.h>
 
 const char trace_ext_prefix[] = "TC";
