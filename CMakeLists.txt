@@ -16,6 +16,9 @@
 
 if(CONFIG_OPTEE_OS)
 
+  nuttx_add_prebuilt(BIN_TARGETS optee_nuttx APP_TARGETS
+                     ${CONFIG_OPTEE_SERVER_PROGNAME})
+
   # ############################################################################
   # Flags
   # ############################################################################
@@ -134,10 +137,10 @@ if(CONFIG_OPTEE_OS)
   # Library Configuration
   # ############################################################################
 
-  nuttx_add_library(optee_nuttx STATIC)
-  target_sources(optee_nuttx PRIVATE ${CSRCS})
-  target_include_directories(optee_nuttx PRIVATE ${INCDIR})
-  target_compile_options(optee_nuttx PRIVATE ${CFLAGS})
+  nuttx_library_ifndef(SKIP_PREBUILT optee_nuttx)
+  nuttx_sources(${CSRCS})
+  nuttx_include_directories(${INCDIR})
+  nuttx_compile_options(${CFLAGS})
 
   # ############################################################################
   # Applications Configuration
