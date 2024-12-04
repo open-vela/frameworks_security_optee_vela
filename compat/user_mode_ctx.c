@@ -17,6 +17,6 @@
 
 #include <kernel/user_mode_ctx.h>
 
-void user_mode_ctx_print_mappings(struct user_mode_ctx *uctx)
+void user_mode_ctx_print_mappings(struct user_mode_ctx* uctx)
 {
 }

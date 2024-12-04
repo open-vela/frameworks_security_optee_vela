@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <stdint.h>
 #include <nuttx/spinlock.h>
+#include <stdint.h>
 
 /*
  * the following __atomic_load_8 is needed by optee_os copy_in_params
@@ -24,12 +24,12 @@
  * to implement the software version __atomic_load_8
  * the implementation is referred to nuttx/libs/libc/machine/arch_atomic.c
  */
-uint64_t __atomic_load_8(FAR const volatile void *ptr, int memorder)
+uint64_t __atomic_load_8(FAR const volatile void* ptr, int memorder)
 {
-	irqstate_t irqstate = spin_lock_irqsave(NULL);
+    irqstate_t irqstate = spin_lock_irqsave(NULL);
 
-	uint64_t ret = *(FAR uint64_t *)ptr;
+    uint64_t ret = *(FAR uint64_t*)ptr;
 
-	spin_unlock_irqrestore(NULL, irqstate);
-	return ret;
+    spin_unlock_irqrestore(NULL, irqstate);
+    return ret;
 }

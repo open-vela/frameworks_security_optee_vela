@@ -23,36 +23,36 @@
 #include <types_ext.h>
 #include <util.h>
 
-struct mobj *mobj_sec_ddr;
-struct mobj *mobj_tee_ram_rx;
-struct mobj *mobj_tee_ram_rw;
+struct mobj* mobj_sec_ddr;
+struct mobj* mobj_tee_ram_rx;
+struct mobj* mobj_tee_ram_rw;
 
 /*
  * mobj_mm implementation
  */
 struct mobj_mm {
-	tee_mm_entry_t *mm;
-	struct mobj *parent_mobj;
-	struct mobj mobj;
+    tee_mm_entry_t* mm;
+    struct mobj* parent_mobj;
+    struct mobj mobj;
 };
 
 struct mobj mobj_virt = { .size = SIZE_MAX };
 
-struct mobj *mobj_mm_alloc(struct mobj *mobj_parent, size_t size,
-			      tee_mm_pool_t *pool)
+struct mobj* mobj_mm_alloc(struct mobj* mobj_parent, size_t size,
+    tee_mm_pool_t* pool)
 {
-	struct mobj_mm *m = calloc(1, sizeof(*m));
+    struct mobj_mm* m = calloc(1, sizeof(*m));
 
-	if (!m)
-		return NULL;
+    if (!m)
+        return NULL;
 
-	m->mm = malloc(size);
-	if (!m->mm) {
-		free(m);
-		return NULL;
-	}
+    m->mm = malloc(size);
+    if (!m->mm) {
+        free(m);
+        return NULL;
+    }
 
-	m->parent_mobj = mobj_parent;
-	m->mobj.size = size;
-	return &m->mobj;
+    m->parent_mobj = mobj_parent;
+    m->mobj.size = size;
+    return &m->mobj;
 }

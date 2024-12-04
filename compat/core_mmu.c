@@ -21,5 +21,5 @@
 
 bool core_mmu_user_mapping_is_active(void)
 {
-	return false;
+    return false;
 }

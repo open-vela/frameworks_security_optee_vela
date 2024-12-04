@@ -20,22 +20,22 @@
 #include <sys/time.h>
 #include <time.h>
 
-static TEE_Result get_time_system(TEE_Time *time)
+static TEE_Result get_time_system(TEE_Time* time)
 {
-	struct timespec tv;
-	if (!clock_gettime(CLOCK_MONOTONIC, &tv)) {
-		/* Convert the struct timespec to a struct TEE_Time */
-		time->seconds = (uint32_t) tv.tv_sec;
-		time->millis = (uint32_t) (tv.tv_nsec / 1000000);
-		return TEE_SUCCESS;
-	}
-	return TEE_ERROR_ACCESS_DENIED;
+    struct timespec tv;
+    if (!clock_gettime(CLOCK_MONOTONIC, &tv)) {
+        /* Convert the struct timespec to a struct TEE_Time */
+        time->seconds = (uint32_t)tv.tv_sec;
+        time->millis = (uint32_t)(tv.tv_nsec / 1000000);
+        return TEE_SUCCESS;
+    }
+    return TEE_ERROR_ACCESS_DENIED;
 }
 
 static const struct time_source system_time_source = {
-	.name = "system time",
-	.protection_level = 1000,
-	.get_sys_time = get_time_system,
+    .name = "system time",
+    .protection_level = 1000,
+    .get_sys_time = get_time_system,
 };
 
 REGISTER_TIME_SOURCE(system_time_source)

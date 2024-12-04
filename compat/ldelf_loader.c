@@ -17,21 +17,21 @@
  * limitations under the License.
  */
 
-#include <ldelf.h>
 #include <kernel/user_mode_ctx_struct.h>
+#include <ldelf.h>
 
-TEE_Result ldelf_init_with_ldelf(struct ts_session *sess,
-				 struct user_mode_ctx *uctx)
+TEE_Result ldelf_init_with_ldelf(struct ts_session* sess,
+    struct user_mode_ctx* uctx)
 {
-	return TEE_ERROR_NOT_SUPPORTED;
+    return TEE_ERROR_NOT_SUPPORTED;
 }
 
-TEE_Result ldelf_load_ldelf(struct user_mode_ctx *uctx)
+TEE_Result ldelf_load_ldelf(struct user_mode_ctx* uctx)
 {
-	return TEE_ERROR_NOT_SUPPORTED;
+    return TEE_ERROR_NOT_SUPPORTED;
 }
 
-TEE_Result ldelf_dump_state(struct user_mode_ctx *uctx)
+TEE_Result ldelf_dump_state(struct user_mode_ctx* uctx)
 {
-	return TEE_ERROR_NOT_SUPPORTED;
+    return TEE_ERROR_NOT_SUPPORTED;
 }
