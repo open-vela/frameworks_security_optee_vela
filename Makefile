@@ -83,6 +83,7 @@ CSRCS += compat/trace_ext.c
 CSRCS += compat/ts_manager.c
 CSRCS += compat/user_access.c
 CSRCS += compat/user_mode_ctx.c
+CSRCS += compat/user_ta_entry_dummy.c
 CSRCS += compat/vm.c
 
 ifneq ($(CONFIG_OPTEE_RPMB_FS),)
