@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
-#include <trace.h>
-#include <syslog.h>
 #include <nuttx/arch.h>
 #include <nuttx/sched.h>
+#include <syslog.h>
+#include <trace.h>
 
 const char trace_ext_prefix[] = "TC";
 int trace_level = TRACE_LEVEL;
 
 int trace_ext_get_core_id(void)
 {
-	return up_cpu_index();
+    return up_cpu_index();
 }
 
 int trace_ext_get_thread_id(void)
 {
-	return gettid();
+    return gettid();
 }
 
 #if TRACE_LEVEL > 0
 
-void trace_ext_puts(const char *str)
+void trace_ext_puts(const char* str)
 {
-	syslog(LOG_INFO, "%s", str);
+    syslog(LOG_INFO, "%s", str);
 }
 
 #else
 
-void trace_ext_puts(const char *str)
+void trace_ext_puts(const char* str)
 {
 }
 

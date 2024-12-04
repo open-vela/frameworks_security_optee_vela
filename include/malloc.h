@@ -21,28 +21,28 @@
 #include_next <malloc.h>
 #include <stdbool.h>
 
-struct malloc_ctx {};
+struct malloc_ctx { };
 
 #define nex_free(ptr) free(ptr)
 #define nex_malloc(size) malloc(size)
 #define nex_calloc(nmemb, size) calloc(nmemb, size)
 
-void *raw_calloc(size_t hdr_size, size_t ftr_size, size_t pl_nmemb,
-		 size_t pl_size, struct malloc_ctx *ctx);
-void *raw_malloc(size_t hdr_size, size_t ftr_size, size_t pl_size,
-		 struct malloc_ctx *ctx);
-void *raw_realloc(void *ptr, size_t hdr_size, size_t ftr_size,
-		  size_t pl_size, struct malloc_ctx *ctx);
-void raw_free(void *ptr, struct malloc_ctx *ctx, bool wipe);
-void malloc_add_pool(void *buf, size_t len);
+void* raw_calloc(size_t hdr_size, size_t ftr_size, size_t pl_nmemb,
+    size_t pl_size, struct malloc_ctx* ctx);
+void* raw_malloc(size_t hdr_size, size_t ftr_size, size_t pl_size,
+    struct malloc_ctx* ctx);
+void* raw_realloc(void* ptr, size_t hdr_size, size_t ftr_size,
+    size_t pl_size, struct malloc_ctx* ctx);
+void raw_free(void* ptr, struct malloc_ctx* ctx, bool wipe);
+void malloc_add_pool(void* buf, size_t len);
 size_t raw_malloc_get_ctx_size(void);
-void raw_malloc_init_ctx(struct malloc_ctx *ctx);
-void raw_malloc_add_pool(struct malloc_ctx *ctx, void *buf, size_t len);
-bool raw_malloc_buffer_is_within_alloced(struct malloc_ctx *ctx,
-					 void *buf, size_t len);
-bool raw_malloc_buffer_overlaps_heap(struct malloc_ctx *ctx,
-				     void *buf, size_t len);
-bool malloc_buffer_is_within_alloced(void *buf, size_t len);
-bool malloc_buffer_overlaps_heap(void *buf, size_t len);
+void raw_malloc_init_ctx(struct malloc_ctx* ctx);
+void raw_malloc_add_pool(struct malloc_ctx* ctx, void* buf, size_t len);
+bool raw_malloc_buffer_is_within_alloced(struct malloc_ctx* ctx,
+    void* buf, size_t len);
+bool raw_malloc_buffer_overlaps_heap(struct malloc_ctx* ctx,
+    void* buf, size_t len);
+bool malloc_buffer_is_within_alloced(void* buf, size_t len);
+bool malloc_buffer_overlaps_heap(void* buf, size_t len);
 
 #endif /* __MALLOC_COMPAT_H */

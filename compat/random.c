@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-#include <stdint.h>
-#include <tee_api_types.h>
 #include <rng_support.h>
+#include <stdint.h>
 #include <sys/random.h>
+#include <tee_api_types.h>
 
-TEE_Result hw_get_random_bytes(void *buf, size_t blen)
+TEE_Result hw_get_random_bytes(void* buf, size_t blen)
 {
-	ssize_t ret;
-	if (!buf)
-		return TEE_ERROR_BAD_PARAMETERS;
+    ssize_t ret;
+    if (!buf)
+        return TEE_ERROR_BAD_PARAMETERS;
 
-	ret = getrandom(buf, blen, GRND_RANDOM);
-	if (ret < 0)
-		ret = getrandom(buf, blen, 0);
+    ret = getrandom(buf, blen, GRND_RANDOM);
+    if (ret < 0)
+        ret = getrandom(buf, blen, 0);
 
-	if (ret > 0)
-		return TEE_SUCCESS;
+    if (ret > 0)
+        return TEE_SUCCESS;
 
-	return TEE_ERROR_GENERIC;
+    return TEE_ERROR_GENERIC;
 }

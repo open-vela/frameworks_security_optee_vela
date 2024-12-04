@@ -22,18 +22,18 @@
 #include <user_ta_header.h>
 
 struct user_ta_head {
-	TEE_UUID uuid;
-	const char *name;
-	uint32_t flags;
-	TEE_Result (*create_entry_point)(void);
-	void (*destroy_entry_point)(void);
-	TEE_Result (*open_session_entry_point)(uint32_t nParamTypes,
-				TEE_Param pParams[TEE_NUM_PARAMS],
-				void **ppSessionContext);
-	void (*close_session_entry_point)(void *pSessionContext);
-	TEE_Result (*invoke_command_entry_point)(void *pSessionContext,
-				uint32_t nCommandID, uint32_t nParamTypes,
-				TEE_Param pParams[TEE_NUM_PARAMS]);
+    TEE_UUID uuid;
+    const char* name;
+    uint32_t flags;
+    TEE_Result (*create_entry_point)(void);
+    void (*destroy_entry_point)(void);
+    TEE_Result (*open_session_entry_point)(uint32_t nParamTypes,
+        TEE_Param pParams[TEE_NUM_PARAMS],
+        void** ppSessionContext);
+    void (*close_session_entry_point)(void* pSessionContext);
+    TEE_Result (*invoke_command_entry_point)(void* pSessionContext,
+        uint32_t nCommandID, uint32_t nParamTypes,
+        TEE_Param pParams[TEE_NUM_PARAMS]);
 };
 
 #endif /* USER_TA_WASM_HEADER_H */

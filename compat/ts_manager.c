@@ -24,36 +24,36 @@
 
 static TAILQ_HEAD(, ts_session) sess_stack;
 
-void ts_push_current_session(struct ts_session *s)
+void ts_push_current_session(struct ts_session* s)
 {
-	TAILQ_INSERT_HEAD(&sess_stack, s, link_tsd);
+    TAILQ_INSERT_HEAD(&sess_stack, s, link_tsd);
 }
 
-struct ts_session *ts_pop_current_session(void)
+struct ts_session* ts_pop_current_session(void)
 {
-	struct ts_session *s = TAILQ_FIRST(&sess_stack);
+    struct ts_session* s = TAILQ_FIRST(&sess_stack);
 
-	if (s) {
-		TAILQ_REMOVE(&sess_stack, s, link_tsd);
-	}
-	return s;
+    if (s) {
+        TAILQ_REMOVE(&sess_stack, s, link_tsd);
+    }
+    return s;
 }
 
-struct ts_session *ts_get_calling_session(void)
+struct ts_session* ts_get_calling_session(void)
 {
-	return TAILQ_NEXT(ts_get_current_session(), link_tsd);
+    return TAILQ_NEXT(ts_get_current_session(), link_tsd);
 }
 
-struct ts_session *ts_get_current_session_may_fail(void)
+struct ts_session* ts_get_current_session_may_fail(void)
 {
-	return TAILQ_FIRST(&sess_stack);
+    return TAILQ_FIRST(&sess_stack);
 }
 
-struct ts_session *ts_get_current_session(void)
+struct ts_session* ts_get_current_session(void)
 {
-	struct ts_session *s = ts_get_current_session_may_fail();
+    struct ts_session* s = ts_get_current_session_may_fail();
 
-	if (!s)
-		panic();
-	return s;
+    if (!s)
+        panic();
+    return s;
 }

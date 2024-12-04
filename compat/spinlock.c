@@ -17,17 +17,18 @@
 #include <kernel/spinlock.h>
 #include <stdatomic.h>
 
-void __cpu_spin_lock(unsigned int *lock)
+void __cpu_spin_lock(unsigned int* lock)
 {
-	while (atomic_flag_test_and_set(lock));
+    while (atomic_flag_test_and_set(lock))
+        ;
 }
 
-void __cpu_spin_unlock(unsigned int *lock)
+void __cpu_spin_unlock(unsigned int* lock)
 {
-	atomic_flag_clear(lock);
+    atomic_flag_clear(lock);
 }
 
-unsigned int __cpu_spin_trylock(unsigned int *lock)
+unsigned int __cpu_spin_trylock(unsigned int* lock)
 {
-	return atomic_flag_test_and_set(lock);
+    return atomic_flag_test_and_set(lock);
 }
