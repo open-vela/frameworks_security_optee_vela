@@ -20,5 +20,5 @@
 
 void abort_print_current_ts(void)
 {
-	dump_stack();
+    dump_stack();
 }

@@ -22,43 +22,43 @@
 #include <tee_api_types.h>
 #include <types_ext.h>
 
-TEE_Result copy_from_user(void *kaddr, const void *uaddr, size_t len)
+TEE_Result copy_from_user(void* kaddr, const void* uaddr, size_t len)
 {
-	memcpy(kaddr, uaddr, len);
-	return TEE_SUCCESS;
+    memcpy(kaddr, uaddr, len);
+    return TEE_SUCCESS;
 }
 
-TEE_Result copy_to_user(void *uaddr, const void *kaddr, size_t len)
+TEE_Result copy_to_user(void* uaddr, const void* kaddr, size_t len)
 {
-	memcpy(uaddr, kaddr, len);
-	return TEE_SUCCESS;
+    memcpy(uaddr, kaddr, len);
+    return TEE_SUCCESS;
 }
 
-TEE_Result copy_from_user_private(void *kaddr, const void *uaddr, size_t len)
+TEE_Result copy_from_user_private(void* kaddr, const void* uaddr, size_t len)
 {
-	memcpy(kaddr, uaddr, len);
-	return TEE_SUCCESS;
+    memcpy(kaddr, uaddr, len);
+    return TEE_SUCCESS;
 }
 
-TEE_Result copy_to_user_private(void *uaddr, const void *kaddr, size_t len)
+TEE_Result copy_to_user_private(void* uaddr, const void* kaddr, size_t len)
 {
-	memcpy(uaddr, kaddr, len);
-	return TEE_SUCCESS;
+    memcpy(uaddr, kaddr, len);
+    return TEE_SUCCESS;
 }
 
-TEE_Result copy_kaddr_to_uref(uint32_t *uref, void *kaddr)
+TEE_Result copy_kaddr_to_uref(uint32_t* uref, void* kaddr)
 {
-	uint32_t ref = kaddr_to_uref(kaddr);
+    uint32_t ref = kaddr_to_uref(kaddr);
 
-	return copy_to_user_private(uref, &ref, sizeof(ref));
+    return copy_to_user_private(uref, &ref, sizeof(ref));
 }
 
-uint32_t kaddr_to_uref(void *kaddr)
+uint32_t kaddr_to_uref(void* kaddr)
 {
-	return (vaddr_t)kaddr;
+    return (vaddr_t)kaddr;
 }
 
 vaddr_t uref_to_vaddr(uint32_t uref)
 {
-	return uref;
+    return uref;
 }

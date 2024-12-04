@@ -22,9 +22,9 @@
 #include_next <tee_api_defines.h>
 
 #ifdef CONFIG_OPTEE_RPMB_FS
-#define TEE_STORAGE_USER               0x80000100
+#define TEE_STORAGE_USER 0x80000100
 #else
-#define TEE_STORAGE_USER               0x80000000
+#define TEE_STORAGE_USER 0x80000000
 #endif
 
 #endif /* TEE_API_DEFINES_COMPAT_H */

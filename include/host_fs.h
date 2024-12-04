@@ -22,20 +22,20 @@
 #include <kernel/thread.h>
 #include <tee_api_types.h>
 
-TEE_Result host_fs_open(size_t num_params, struct thread_param *params);
+TEE_Result host_fs_open(size_t num_params, struct thread_param* params);
 
-TEE_Result host_fs_create(size_t num_params, struct thread_param *params);
+TEE_Result host_fs_create(size_t num_params, struct thread_param* params);
 
-TEE_Result host_fs_close(size_t num_params, struct thread_param *params);
+TEE_Result host_fs_close(size_t num_params, struct thread_param* params);
 
-TEE_Result host_fs_read(size_t num_params, struct thread_param *params);
+TEE_Result host_fs_read(size_t num_params, struct thread_param* params);
 
-TEE_Result host_fs_write(size_t num_params, struct thread_param *params);
+TEE_Result host_fs_write(size_t num_params, struct thread_param* params);
 
-TEE_Result host_fs_truncate(size_t num_params, struct thread_param *params);
+TEE_Result host_fs_truncate(size_t num_params, struct thread_param* params);
 
-TEE_Result host_fs_remove(size_t num_params, struct thread_param *params);
+TEE_Result host_fs_remove(size_t num_params, struct thread_param* params);
 
-TEE_Result host_fs_rename(size_t num_params, struct thread_param *params);
+TEE_Result host_fs_rename(size_t num_params, struct thread_param* params);
 
 #endif /* HOST_FS_H */
