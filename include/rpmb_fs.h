@@ -22,16 +22,16 @@
 #include <kernel/thread.h>
 
 struct rpmb_req {
-	uint16_t cmd;
-#define RPMB_CMD_DATA_REQ      0x00
-#define RPMB_CMD_GET_DEV_INFO  0x01
-	uint16_t dev_id;
-	uint16_t block_count;
-	/* Optional data frames (rpmb_data_frame) follow */
+    uint16_t cmd;
+#define RPMB_CMD_DATA_REQ 0x00
+#define RPMB_CMD_GET_DEV_INFO 0x01
+    uint16_t dev_id;
+    uint16_t block_count;
+    /* Optional data frames (rpmb_data_frame) follow */
 };
 
-TEE_Result rpmb_data_request(size_t num_params, struct thread_param *params);
+TEE_Result rpmb_data_request(size_t num_params, struct thread_param* params);
 
-TEE_Result rpmb_get_dev_info(size_t num_params, struct thread_param *params);
+TEE_Result rpmb_get_dev_info(size_t num_params, struct thread_param* params);
 
 #endif /* RPMB_FS_H */

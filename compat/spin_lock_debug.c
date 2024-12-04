@@ -16,9 +16,9 @@
 
 #include <kernel/spinlock.h>
 
-void spinlock_count_incr(void) {}
+void spinlock_count_incr(void) { }
 
-void spinlock_count_decr(void) {}
+void spinlock_count_decr(void) { }
 
 bool have_spinlock(void)
 {

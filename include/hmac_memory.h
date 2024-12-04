@@ -17,11 +17,11 @@
 #ifndef HMAC_MEMORY_H
 #define HMAC_MEMORY_H
 
-int find_hash(const char *name);
+int find_hash(const char* name);
 
 int hmac_memory(int hash,
-		const unsigned char *key, unsigned long keylen,
-		const unsigned char *in,  unsigned long inlen,
-		unsigned char *out, unsigned long *outlen);
+    const unsigned char* key, unsigned long keylen,
+    const unsigned char* in, unsigned long inlen,
+    unsigned char* out, unsigned long* outlen);
 
 #endif /* HMAC_MEMORY_H */

@@ -30,17 +30,17 @@
  */
 
 #ifdef __ASSEMBLER__
-#define U(v)		v
-#define UL(v)		v
-#define ULL(v)		v
-#define L(v)		v
-#define LL(v)		v
+#define U(v) v
+#define UL(v) v
+#define ULL(v) v
+#define L(v) v
+#define LL(v) v
 #else
-#define U(v)		v ## U
-#define UL(v)		v ## UL
-#define ULL(v)		v ## ULL
-#define L(v)		v ## L
-#define LL(v)		v ## LL
+#define U(v) v##U
+#define UL(v) v##UL
+#define ULL(v) v##ULL
+#define L(v) v##L
+#define LL(v) v##LL
 #endif
 
 #endif /* __STDINT_COMPAT_H */

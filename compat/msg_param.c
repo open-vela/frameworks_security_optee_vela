@@ -19,12 +19,12 @@
 #include <mm/mobj.h>
 #include <stdio.h>
 
-struct mobj *msg_param_mobj_from_noncontig(paddr_t buf_ptr, size_t size,
-					   uint64_t shm_ref, bool map_buffer)
+struct mobj* msg_param_mobj_from_noncontig(paddr_t buf_ptr, size_t size,
+    uint64_t shm_ref, bool map_buffer)
 {
-	return (struct mobj *)(uintptr_t)shm_ref;
+    return (struct mobj*)(uintptr_t)shm_ref;
 }
 
-void mobj_reg_shm_unguard(struct mobj *mobj)
+void mobj_reg_shm_unguard(struct mobj* mobj)
 {
 }

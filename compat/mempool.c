@@ -16,17 +16,17 @@
  * limitations under the License.
  */
 
-#include <stdlib.h>
 #include <mempool.h>
+#include <stdlib.h>
 
-struct mempool *mempool_default;
+struct mempool* mempool_default;
 
-void *mempool_alloc(struct mempool *pool, size_t size)
+void* mempool_alloc(struct mempool* pool, size_t size)
 {
-	return malloc(size);
+    return malloc(size);
 }
 
-void mempool_free(struct mempool *pool, void *ptr)
+void mempool_free(struct mempool* pool, void* ptr)
 {
-	free(ptr);
+    free(ptr);
 }

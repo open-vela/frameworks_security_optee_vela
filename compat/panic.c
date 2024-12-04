@@ -16,16 +16,17 @@
  * limitations under the License.
  */
 
-#include <kernel/panic.h>
 #include <assert.h>
+#include <kernel/panic.h>
 
-void __do_panic(const char *file, const int line, const char *func,
-		const char *msg)
+void __do_panic(const char* file, const int line, const char* func,
+    const char* msg)
 {
 #if defined(CFG_TEE_CORE_DEBUG)
-	EMSG("%s, %d, %s, %s\n", file, line, func, msg);
+    EMSG("%s, %d, %s, %s\n", file, line, func, msg);
 #else
-	PANIC_WITH_REGS(msg, NULL);
-	while(1);
+    PANIC_WITH_REGS(msg, NULL);
+    while (1)
+        ;
 #endif
 }
