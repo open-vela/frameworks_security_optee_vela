@@ -21,16 +21,33 @@ if(CONFIG_OPTEE_OS)
   # ############################################################################
 
   set(CFLAGS
-      -DARM32
       -DCFG_CORE_DYN_SHM
       -DCFG_NUM_THREADS=1
       -DCFG_OTP_SUPPORT
       -DCFG_OTP_SUPPORT_NO_PROVISION_TMP
       -DCFG_WITH_USER_TA
-      -DHOST_FS_PARENT_PATH=\"${CFG_HOST_FS_PARENT_PATH}\")
+      -DHOST_FS_PARENT_PATH=\"${CONFIG_OPTEE_HOST_FS_PARENT_PATH}\")
 
   if(CONFIG_TEE_CORE_DEBUG)
     list(APPEND CFLAGS -DCFG_TEE_CORE_DEBUG)
+  endif()
+
+  if(CONFIG_DEBUG_INFO)
+    list(APPEND CFLAGS -DTRACE_LEVEL=3)
+  elseif(CONFIG_DEBUG_WARN)
+    list(APPEND CFLAGS -DTRACE_LEVEL=2)
+  elseif(CONFIG_DEBUG_ERROR)
+    list(APPEND CFLAGS -DTRACE_LEVEL=1)
+  else()
+    list(APPEND CFLAGS -DTRACE_LEVEL=1)
+  endif()
+
+  if(CONFIG_ARCH_ARM64)
+    list(APPEND CFLAGS -DARM64)
+  elseif(CONFIG_ARCH_ARM)
+    list(APPEND CFLAGS -DARM32)
+  elseif(CONFIG_ARCH_SIM)
+    list(APPEND CFLAGS -DARM32)
   endif()
 
   # ############################################################################
@@ -62,6 +79,7 @@ if(CONFIG_OPTEE_OS)
       compat/ts_manager.c
       compat/user_access.c
       compat/user_mode_ctx.c
+      compat/user_ta_entry_dummy.c
       compat/vm.c)
 
   if(CONFIG_TEE_CORE_DEBUG)
