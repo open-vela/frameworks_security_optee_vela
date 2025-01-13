@@ -177,6 +177,9 @@ static void* optee_thread(void* arg)
 
             shm_buf = shm_tmp;
             shm_buf_size = shm_total;
+        } else {
+            EMSG("shm_total size invalid, shm_total(%zu), shm_buf_size(%zu)\n", shm_total, shm_buf_size);
+            break;
         }
 
         if (shm_recv > 0) {
