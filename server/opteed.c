@@ -151,7 +151,7 @@ static void* optee_thread(void* arg)
                 break;
         }
 
-        size_t shm_size[OPTEE_MAX_PARAM_NUM];
+        size_t shm_size[OPTEE_MAX_PARAM_NUM] = { 0 };
         size_t shm_total = 0;
         size_t shm_recv = 0;
 
