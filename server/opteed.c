@@ -143,6 +143,9 @@ static void* optee_thread(void* arg)
         if (ret < 0)
             break;
 
+        if (msg->num_params > OPTEE_MAX_PARAM_NUM)
+            continue;
+
         if (msg->num_params > 0) {
             /* Receive struct optee_msg_param */
             ret = optee_recv(connfd, param,
@@ -168,7 +171,7 @@ static void* optee_thread(void* arg)
         }
 
         void* shm_tmp = shm_buf;
-        if (shm_total > shm_buf_size) {
+        if (!shm_tmp || shm_total > shm_buf_size) {
             shm_tmp = realloc(shm_buf, shm_total);
             if (shm_tmp == NULL) {
                 EMSG("realloc failed\n");
