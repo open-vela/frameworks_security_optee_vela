@@ -241,8 +241,7 @@ static TEE_Result user_ta_wasm_enter_open_session(struct ts_session* s)
     /* call create entry point if first open session, or when the session is re-opened
      * but the utc->func is not inited, we need to perform the init action
      */
-    if (utc->ta_ctx.ref_count == 1 || !utc->func) {
-        /* call create entry point if first open session */
+    if (utc->ta_ctx.ref_count >= 1 || !utc->func) {
         /* lookup a WASM function by its name. */
         utc->func = wasm_runtime_lookup_function(utc->wasm_module_inst,
             "wasm_TA_CreateEntryPoint");
