@@ -24,7 +24,7 @@ int trace_level = TRACE_LEVEL;
 
 int trace_ext_get_core_id(void)
 {
-    return up_cpu_index();
+    return sched_getcpu();
 }
 
 int trace_ext_get_thread_id(void)
