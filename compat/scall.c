@@ -315,6 +315,36 @@ TEE_Result _utee_get_time(unsigned long cat, TEE_Time* time)
     return syscall_get_time(cat, time);
 }
 
+TEE_Result _utee_set_ta_time(const TEE_Time* time)
+{
+    return syscall_set_ta_time(time);
+}
+
+TEE_Result _utee_cache_operation(void *va, size_t len, unsigned long op)
+{
+    return TEE_SUCCESS;
+}
+
+TEE_Result _utee_mask_cancellation(uint32_t *old_mask)
+{
+    return syscall_mask_cancellation(old_mask);
+}
+
+TEE_Result _utee_unmask_cancellation(uint32_t *old_mask)
+{
+    return syscall_unmask_cancellation(old_mask);
+}
+
+TEE_Result _utee_get_cancellation_flag(uint32_t *cancel)
+{
+    return syscall_get_cancellation_flag(cancel);
+}
+
+TEE_Result _utee_wait(unsigned long timeout)
+{
+    return syscall_wait(timeout);
+}
+
 void _utee_panic(unsigned long code)
 {
     char buffer[10] = { 0 };

@@ -31,6 +31,12 @@ void raw_free(void* ptr, struct malloc_ctx* ctx, bool wipe)
     free(ptr);
 }
 
+void* raw_realloc(void* ptr, size_t hdr_size, size_t ftr_size,
+    size_t pl_size, struct malloc_ctx *ctx)
+{
+    return realloc(ptr, hdr_size);
+}
+
 void* raw_calloc(size_t hdr_size, size_t ftr_size, size_t pl_nmemb,
     size_t pl_size, struct malloc_ctx* ctx)
 {
