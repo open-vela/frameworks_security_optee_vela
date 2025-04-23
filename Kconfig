@@ -54,17 +54,32 @@ config OPTEE_NATIVE_STACKSIZE
 
 endif
 
-config USER_TA_WASM
-	bool "Enable Ta wasm in tee"
-	depends on INTERPRETERS_WAMR
-	default y
-
 config OPTEE_HOST_FS_PARENT_PATH
 	string "Enable custom hostfs pathname"
 	default "/sst"
 
 choice
 	prompt "TA Format"
+	default USER_TA_WASM
+
+config USER_TA_ELF
+	bool "Enable Ta elf in tee"
+	depends on ELF
+	---help---
+		This option enables the support for ELF format Trusted Applications in OP-TEE.
+
+config USER_TA_WASM
+	bool "Enable Ta wasm in tee"
+	depends on INTERPRETERS_WAMR
+	---help---
+		This option enables the support for WebAssembly format Trusted Applications in OP-TEE.
+
+endchoice
+
+if USER_TA_WASM
+
+choice
+	prompt "WASM TA Format"
 	default OPTEE_TA_XIP
 
 config OPTEE_TA_WASM
@@ -79,3 +94,6 @@ config OPTEE_TA_FORMAT
 	string
 	default "WASM" if OPTEE_TA_WASM
 	default "XIP" if OPTEE_TA_XIP
+
+endif
+

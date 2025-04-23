@@ -15,6 +15,7 @@
 #
 
 if(CONFIG_OPTEE_OS)
+  add_subdirectory(wasm)
 
   nuttx_add_prebuilt(BIN_TARGETS optee_nuttx APP_TARGETS
                      ${CONFIG_OPTEE_SERVER_PROGNAME})
@@ -24,11 +25,8 @@ if(CONFIG_OPTEE_OS)
   # ############################################################################
 
   set(CFLAGS
-      -DCFG_CORE_DYN_SHM
-      -DCFG_NUM_THREADS=1
-      -DCFG_OTP_SUPPORT
-      -DCFG_OTP_SUPPORT_NO_PROVISION_TMP
-      -DCFG_WITH_USER_TA
+      -DCFG_CORE_DYN_SHM -DCFG_NUM_THREADS=1 -DCFG_OTP_SUPPORT
+      -DCFG_OTP_SUPPORT_NO_PROVISION_TMP -DCFG_WITH_USER_TA
       -DHOST_FS_PARENT_PATH=\"${CONFIG_OPTEE_HOST_FS_PARENT_PATH}\")
 
   if(CONFIG_TEE_CORE_DEBUG)
@@ -111,8 +109,14 @@ if(CONFIG_OPTEE_OS)
 
   if(CONFIG_USER_TA_WASM)
     list(APPEND CSRCS wasm/user_ta_wasm.c wasm/libtee_builtin_wrapper.c)
-
     list(APPEND CFLAGS -DUSER_TA_WASM)
+  endif()
+
+  if(CONFIG_USER_TA_ELF)
+    list(
+      APPEND
+      CSRCS
+      elf/user_ta_elf.c)
   endif()
 
   # ############################################################################
@@ -141,6 +145,32 @@ if(CONFIG_OPTEE_OS)
   nuttx_sources(${CSRCS})
   nuttx_include_directories(${INCDIR})
   nuttx_compile_options(${CFLAGS})
+
+  # ############################################################################
+  # ELF TA Symtab
+  # ############################################################################
+
+  if(CONFIG_USER_TA_ELF)
+    set(SYMTAB_APPS_SOURCE ${CMAKE_BINARY_DIR}/ta_elf_symtab_apps.c)
+    add_custom_command(
+      OUTPUT ${SYMTAB_APPS_SOURCE} always_rebuild_symtab
+      COMMAND ${NUTTX_APPS_DIR}/tools/mksymtab.sh ${CMAKE_BINARY_DIR}/bin g_elf_ta >
+              ${CMAKE_BINARY_DIR}/ta_elf_symtab_apps.c
+      COMMAND ${CMAKE_COMMAND} -E touch always_rebuild_symtab
+      COMMAND ${CMAKE_COMMAND} -E remove always_rebuild_symtab
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      DEPENDS nuttx_apps_mksymtab
+      VERBATIM
+      COMMENT "Mksymtab: generating symbol table for elf ta")
+    add_custom_target(ta_elf_symtab_source_gen ALL DEPENDS ${SYMTAB_APPS_SOURCE})
+
+    add_library(ta_elf_symtab)
+    add_dependencies(ta_elf_symtab ta_elf_symtab_source_gen)
+    target_compile_options(ta_elf_symtab PRIVATE ${NO_LTO} -fno-builtin)
+    target_sources(ta_elf_symtab PRIVATE ${SYMTAB_APPS_SOURCE})
+    nuttx_add_library_internal(ta_elf_symtab)
+    set_property(GLOBAL APPEND PROPERTY NUTTX_SYSTEM_LIBRARIES ta_elf_symtab)
+  endif()
 
   # ############################################################################
   # Applications Configuration
