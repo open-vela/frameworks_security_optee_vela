@@ -51,7 +51,7 @@ void wasm_TA_DestroyEntryPoint(void)
     DMSG("%s <<\n", __func__);
 }
 
-static TEE_Result wasm_copy_in_params(uint32_t param_types, uint32_t* p, TEE_Param* params)
+static TEE_Result wasm_copy_in_params(uint32_t param_types, size_t* p, TEE_Param* params)
 {
     /* p[] format case 1: size(4 bytes) + buffer(size bytes)
      *            case 2: a(4 bytes) + b(4 bytes)
@@ -70,14 +70,28 @@ static TEE_Result wasm_copy_in_params(uint32_t param_types, uint32_t* p, TEE_Par
         case TEE_PARAM_TYPE_MEMREF_INPUT:
         case TEE_PARAM_TYPE_MEMREF_OUTPUT:
         case TEE_PARAM_TYPE_MEMREF_INOUT:
-            params[n].memref.size = *((uint32_t*)(uintptr_t)p[n]);
-            params[n].memref.buffer = (void*)(uintptr_t)(p[n] + 4);
+            /*
+                params[] format case 1 as follows:
+                struct {
+                    void *buffer;
+                    size_t size;
+                } memref;
+            */
+            params[n].memref.size = *((size_t*)(uintptr_t)p[n]);
+            params[n].memref.buffer = (void*)(uintptr_t)(p[n] + sizeof(size_t));
             break;
         case TEE_PARAM_TYPE_VALUE_INPUT:
         case TEE_PARAM_TYPE_VALUE_OUTPUT:
         case TEE_PARAM_TYPE_VALUE_INOUT:
+            /*
+                params[] format case 2 as follows:
+                struct {
+                    uint32_t a;
+                    uint32_t b;
+                } value;
+            */
             params[n].value.a = *((uint32_t*)(uintptr_t)(p[n]));
-            params[n].value.b = *((uint32_t*)(uintptr_t)(p[n] + 4));
+            params[n].value.b = *((uint32_t*)(uintptr_t)(p[n] + sizeof(uint32_t)));
             break;
         default:
             EMSG("TEE item not found: 0x%08" PRIx32 "\n", type);
@@ -87,7 +101,7 @@ static TEE_Result wasm_copy_in_params(uint32_t param_types, uint32_t* p, TEE_Par
     return TEE_SUCCESS;
 }
 
-static void wasm_copy_out_params(uint32_t param_types, uint32_t* p, TEE_Param* params)
+static void wasm_copy_out_params(uint32_t param_types, size_t* p, TEE_Param* params)
 {
     /* p[] format case 1: size(4 bytes) + buffer(size bytes)
      *            case 2: a(4 bytes) + b(4 bytes)
@@ -99,12 +113,12 @@ static void wasm_copy_out_params(uint32_t param_types, uint32_t* p, TEE_Param* p
         switch (type) {
         case TEE_PARAM_TYPE_MEMREF_OUTPUT:
         case TEE_PARAM_TYPE_MEMREF_INOUT:
-            *((uint32_t*)(uintptr_t)(p[n])) = params[n].memref.size;
+            *((size_t*)(uintptr_t)(p[n])) = params[n].memref.size;
             break;
         case TEE_PARAM_TYPE_VALUE_OUTPUT:
         case TEE_PARAM_TYPE_VALUE_INOUT:
             *((uint32_t*)(uintptr_t)(p[n])) = params[n].value.a;
-            *((uint32_t*)(uintptr_t)(p[n] + 4)) = params[n].value.b;
+            *((uint32_t*)(uintptr_t)(p[n] + sizeof(uint32_t))) = params[n].value.b;
             break;
         default:
             break;
@@ -113,11 +127,11 @@ static void wasm_copy_out_params(uint32_t param_types, uint32_t* p, TEE_Param* p
 }
 
 TEE_Result wasm_TA_OpenSessionEntryPoint(uint32_t param_types,
-    uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t* sess_ctx)
+    size_t p0, size_t p1, size_t p2, size_t p3, size_t* sess_ctx)
 {
     TEE_Result ret;
     TEE_Param params[4];
-    uint32_t _pl[4];
+    size_t _pl[4];
     void* ctx;
 
     DMSG("%s >>\n", __func__);
@@ -152,7 +166,7 @@ out:
     return ret;
 }
 
-void wasm_TA_CloseSessionEntryPoint(uint32_t sess_ctx)
+void wasm_TA_CloseSessionEntryPoint(size_t sess_ctx)
 {
     DMSG("%s >>\n", __func__);
     if (!user_ta || !user_ta->close_session_entry_point) {
@@ -164,18 +178,19 @@ void wasm_TA_CloseSessionEntryPoint(uint32_t sess_ctx)
     DMSG("%s <<\n", __func__);
 }
 
-TEE_Result wasm_TA_InvokeCommandEntryPoint(uint32_t sess_ctx, uint32_t cmd_id,
+TEE_Result wasm_TA_InvokeCommandEntryPoint(size_t sess_ctx, uint32_t cmd_id,
     uint32_t param_types,
-    uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3)
+    size_t p0, size_t p1, size_t p2, size_t p3)
 {
     TEE_Result ret;
     TEE_Param params[4];
-    uint32_t _pl[4];
+    size_t _pl[4];
 
     DMSG("%s >>\n", __func__);
     if (!user_ta || !user_ta->invoke_command_entry_point) {
         return TEE_ERROR_BAD_PARAMETERS;
     }
+
     _pl[0] = p0;
     _pl[1] = p1;
     _pl[2] = p2;
