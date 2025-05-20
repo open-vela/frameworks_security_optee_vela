@@ -37,29 +37,64 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
+#ifdef CONFIG_INTERPRETERS_WAMR_MEMORY64
+#define SET_WASM_VAL_T_VALUE(a, n, b)            \
+    do {                                         \
+        (a)[n].of.i64 = (int64_t)(uintptr_t)(b); \
+        (a)[n].kind = WASM_I64;                  \
+    } while (0)
+
+#define WASM_RUNTIME_MODULE_MALLOC(utc, size, buffer) \
+    (uint64_t) wasm_runtime_module_malloc((utc)->wasm_module_inst, (size), (buffer))
+#else
+#define SET_WASM_VAL_T_VALUE(a, n, b)            \
+    do {                                         \
+        (a)[n].of.i32 = (int32_t)(uintptr_t)(b); \
+        (a)[n].kind = WASM_I32;                  \
+    } while (0)
+
+#define WASM_RUNTIME_MODULE_MALLOC(utc, size, buffer) \
+    (uint32_t) wasm_runtime_module_malloc((utc)->wasm_module_inst, (size), (buffer))
+#endif
+
 static uint8_t wasm_runtime_init_flag = 0;
+
+static void wasm_free_app_params(struct user_ta_ctx* utc, wasm_val_t* p)
+{
+    for (int n = 0; n < 4; n++) {
+        /* it is runtime embedder's responsibility to release the memory,
+         * unless the WASM app will free the passed pointer in its code
+         */
+        if (p[n].of.i64) {
+            wasm_runtime_module_free(utc->wasm_module_inst, (uint64_t)p[n].of.i64);
+            p[n].of.i64 = 0;
+        }
+
+        if (p[n].of.i32) {
+            wasm_runtime_module_free(utc->wasm_module_inst, (uint64_t)p[n].of.i32);
+            p[n].of.i32 = 0;
+        }
+    }
+}
 
 static TEE_Result wasm_copy_in_app_params(struct user_ta_ctx* utc,
     uint32_t param_types,
-    uint32_t* p, uint32_t* p_cookie,
+    wasm_val_t* p, wasm_val_t* p_cookie,
     struct tee_ta_param* param)
 {
-    /* p[] format case 1: size(4 bytes) + buffer(size bytes)
-     * case 2: a(4 bytes) + b(4 bytes)
-     */
     TEE_Result res = TEE_ERROR_OUT_OF_MEMORY;
     uint32_t type;
-    char* buffer = NULL;
-    uint32_t buffer_for_wasm;
+    void* buffer = NULL;
+    size_t buffer_for_wasm;
 
-    memset(p, 0, sizeof(uint32_t) * 4);
-    memset(p_cookie, 0, sizeof(uint32_t) * 4);
+    memset(p, 0, 4 * sizeof(wasm_val_t));
+    memset(p_cookie, 0, 4 * sizeof(wasm_val_t));
 
     for (int n = 0; n < 4; n++) {
         type = TEE_PARAM_TYPE_GET(param_types, n);
         switch (type) {
         case TEE_PARAM_TYPE_NONE:
-            p[n] = 0;
+            SET_WASM_VAL_T_VALUE(p, n, 0);
             break;
         case TEE_PARAM_TYPE_MEMREF_INPUT:
         case TEE_PARAM_TYPE_MEMREF_OUTPUT:
@@ -68,19 +103,32 @@ static TEE_Result wasm_copy_in_app_params(struct user_ta_ctx* utc,
                 EMSG("param error!!!");
                 continue;
             }
-            buffer_for_wasm = wasm_runtime_module_malloc(
-                utc->wasm_module_inst,
-                param->u[n].mem.mobj->size + sizeof(uint32_t),
-                (void**)&buffer);
+            /*
+                param[] case 1 as follows:
+                struct mobj {
+                    size_t size;
+                    void *buffer;
+                };
+                struct param_mem {
+                    struct mobj *mobj;
+                    size_t size;
+                    size_t offs;
+                };
+            */
+            buffer_for_wasm = WASM_RUNTIME_MODULE_MALLOC(utc,
+                param->u[n].mem.mobj->size + sizeof(size_t),
+                &buffer);
             if (buffer_for_wasm != 0) {
-                p[n] = buffer_for_wasm;
-                p_cookie[n] = (uint32_t)buffer;
-                memcpy(buffer, &param->u[n].mem.mobj->size, sizeof(uint32_t));
-                memcpy(buffer + sizeof(uint32_t),
+                SET_WASM_VAL_T_VALUE(p, n, buffer_for_wasm);
+                SET_WASM_VAL_T_VALUE(p_cookie, n, buffer);
+
+                memcpy(buffer, &param->u[n].mem.mobj->size, sizeof(size_t));
+                memcpy(buffer + sizeof(size_t),
                     param->u[n].mem.mobj->buffer,
                     param->u[n].mem.mobj->size);
+
             } else {
-                EMSG("TEE out of memory: %zu\n", param->u[n].mem.mobj->size + sizeof(uint32_t));
+                EMSG("TEE out of memory: %zu\n", param->u[n].mem.mobj->size + sizeof(size_t));
                 res = TEE_ERROR_OUT_OF_MEMORY;
                 goto out;
             }
@@ -92,13 +140,19 @@ static TEE_Result wasm_copy_in_app_params(struct user_ta_ctx* utc,
                 EMSG("param error!!!");
                 continue;
             }
-            buffer_for_wasm = wasm_runtime_module_malloc(
-                utc->wasm_module_inst,
+            /*
+                param[] case 2 as follows:
+                struct param_val {
+                    uint32_t a;
+                    uint32_t b;
+                };
+            */
+            buffer_for_wasm = WASM_RUNTIME_MODULE_MALLOC(utc,
                 sizeof(uint32_t) * 2,
-                (void**)&buffer);
+                &buffer);
             if (buffer_for_wasm != 0) {
-                p[n] = buffer_for_wasm;
-                p_cookie[n] = (uint32_t)buffer;
+                SET_WASM_VAL_T_VALUE(p, n, buffer_for_wasm);
+                SET_WASM_VAL_T_VALUE(p_cookie, n, buffer);
                 memcpy(buffer, &param->u[n].val.a, sizeof(uint32_t));
                 memcpy(buffer + sizeof(uint32_t), &param->u[n].val.b, sizeof(uint32_t));
             } else {
@@ -116,27 +170,17 @@ static TEE_Result wasm_copy_in_app_params(struct user_ta_ctx* utc,
 
     return TEE_SUCCESS;
 out:
-    for (int n = 0; n < 4; n++) {
-        /* it is runtime embedder's responsibility to release the memory,
-         * unless the WASM app will free the passed pointer in its code
-         */
-        if (!p[n]) {
-            wasm_runtime_module_free(utc->wasm_module_inst, p[n]);
-            p[n] = 0;
-        }
-    }
+    wasm_free_app_params(utc, p);
 
     return res;
 }
 
 static TEE_Result wasm_copy_out_app_params(struct user_ta_ctx* utc,
     uint32_t param_types,
-    uint32_t* p, uint32_t* p_cookie,
+    wasm_val_t* p, wasm_val_t* p_cookie,
     struct tee_ta_param* param)
 {
-    /* p[] format case 1: size(4 bytes) + buffer(size bytes)
-     *            case 2: a(4 bytes) + b(4 bytes)
-     */
+
     TEE_Result res = TEE_ERROR_GENERIC;
     uint32_t type;
 
@@ -152,16 +196,37 @@ static TEE_Result wasm_copy_out_app_params(struct user_ta_ctx* utc,
                 EMSG("param error!!!");
                 continue;
             }
-            if (p_cookie[n] != 0) {
-                memcpy(&param->u[n].mem.mobj->size, (const void*)p_cookie[n],
-                    sizeof(uint32_t));
+            /*
+                p_cookie[] format case 1 as follows:
+                struct {
+                    void *buffer;
+                    size_t size;
+                } memref;
+            */
+#ifdef CONFIG_INTERPRETERS_WAMR_MEMORY64
+            if (p_cookie[n].kind == WASM_I64 && p_cookie[n].of.i64 != 0) {
+                memcpy(&param->u[n].mem.mobj->size, (const void*)(uintptr_t)p_cookie[n].of.i64,
+                    sizeof(size_t));
                 param->u[n].mem.size = param->u[n].mem.mobj->size;
                 memcpy(param->u[n].mem.mobj->buffer,
-                    (const void*)(p_cookie[n] + sizeof(uint32_t)),
+                    (const void*)(uintptr_t)(p_cookie[n].of.i64 + sizeof(size_t)),
                     param->u[n].mem.mobj->size);
-                wasm_runtime_module_free(utc->wasm_module_inst, p[n]);
-                p[n] = 0;
-            } else {
+                wasm_runtime_module_free(utc->wasm_module_inst, (uint64_t)p[n].of.i64);
+                p[n].of.i64 = 0;
+            }
+#else
+            if (p_cookie[n].kind == WASM_I32 && p_cookie[n].of.i32 != 0) {
+                memcpy(&param->u[n].mem.mobj->size, (const void*)(uintptr_t)p_cookie[n].of.i32,
+                    sizeof(size_t));
+                param->u[n].mem.size = param->u[n].mem.mobj->size;
+                memcpy(param->u[n].mem.mobj->buffer,
+                    (const void*)(uintptr_t)(p_cookie[n].of.i32 + sizeof(size_t)),
+                    param->u[n].mem.mobj->size);
+                wasm_runtime_module_free(utc->wasm_module_inst, (uint64_t)p[n].of.i32);
+                p[n].of.i32 = 0;
+            }
+#endif
+            else {
                 EMSG("%08x\n", TEE_ERROR_BAD_PARAMETERS);
                 res = TEE_ERROR_BAD_PARAMETERS;
                 goto out;
@@ -174,15 +239,33 @@ static TEE_Result wasm_copy_out_app_params(struct user_ta_ctx* utc,
                 EMSG("param error!!!");
                 continue;
             }
-
-            if (p_cookie[n] != 0) {
-                memcpy(&param->u[n].val.a, (const void*)p_cookie[n], sizeof(uint32_t));
+            /*
+                p_cookie[] format case 2 as follows:
+                struct {
+                    uint32_t a;
+                    uint32_t b;
+                } value;
+            */
+#ifdef CONFIG_INTERPRETERS_WAMR_MEMORY64
+            if (p_cookie[n].kind == WASM_I64 && p_cookie[n].of.i64 != 0) {
+                memcpy(&param->u[n].val.a, (const void*)(uintptr_t)p_cookie[n].of.i64, sizeof(uint32_t));
                 memcpy(&param->u[n].val.b,
-                    (const void*)(p_cookie[n] + sizeof(uint32_t)),
+                    (const void*)(uintptr_t)(p_cookie[n].of.i64 + sizeof(uint32_t)),
                     sizeof(uint32_t));
-                wasm_runtime_module_free(utc->wasm_module_inst, p[n]);
-                p[n] = 0;
-            } else {
+                wasm_runtime_module_free(utc->wasm_module_inst, (uint64_t)p[n].of.i64);
+                p[n].of.i64 = 0;
+            }
+#else
+            if (p_cookie[n].kind == WASM_I32 && p_cookie[n].of.i32 != 0) {
+                memcpy(&param->u[n].val.a, (const void*)(uintptr_t)p_cookie[n].of.i32, sizeof(uint32_t));
+                memcpy(&param->u[n].val.b,
+                    (const void*)(uintptr_t)(p_cookie[n].of.i32 + sizeof(uint32_t)),
+                    sizeof(uint32_t));
+                wasm_runtime_module_free(utc->wasm_module_inst, (uint64_t)p[n].of.i32);
+                p[n].of.i32 = 0;
+            }
+#endif
+            else {
                 EMSG("%08x\n", TEE_ERROR_BAD_PARAMETERS);
                 res = TEE_ERROR_BAD_PARAMETERS;
                 goto out;
@@ -197,42 +280,21 @@ static TEE_Result wasm_copy_out_app_params(struct user_ta_ctx* utc,
 
     return TEE_SUCCESS;
 out:
-    for (int n = 0; n < 4; n++) {
-        /* it is runtime embedder's responsibility to release the memory,
-         * unless the WASM app will free the passed pointer in its code
-         */
-        if (!p[n]) {
-            wasm_runtime_module_free(utc->wasm_module_inst, p[n]);
-            p[n] = 0;
-        }
-    }
+    wasm_free_app_params(utc, p);
 
     return res;
-}
-
-static void wasm_free_app_params(struct user_ta_ctx* utc, uint32_t* p)
-{
-    for (int n = 0; n < 4; n++) {
-        /* it is runtime embedder's responsibility to release the memory,
-         * unless the WASM app will free the passed pointer in its code
-         */
-        if (!p[n]) {
-            wasm_runtime_module_free(utc->wasm_module_inst, p[n]);
-            p[n] = 0;
-        }
-    }
 }
 
 static TEE_Result user_ta_wasm_enter_open_session(struct ts_session* s)
 {
     TEE_Result res = TEE_ERROR_GENERIC;
-    TEE_Result wasm_res = TEE_ERROR_GENERIC;
-    uint32_t ta_argv[6] = { 0 };
-    uint32_t p_cookie[4] = { 0 };
-    char* buffer = NULL;
+    wasm_val_t ta_arguments[6] = { 0 };
+    wasm_val_t p_cookie[4] = { 0 };
+    wasm_val_t results[1] = { 0 };
+    void* buffer = NULL;
     struct tee_ta_session* ta_sess = to_ta_session(s);
     struct ts_session* ts_sess __maybe_unused = NULL;
-    uint32_t buffer_for_wasm = 0;
+    size_t buffer_for_wasm = 0;
 
     struct user_ta_ctx* utc = to_user_ta_ctx(s->ctx);
     ts_push_current_session(s);
@@ -252,12 +314,13 @@ static TEE_Result user_ta_wasm_enter_open_session(struct ts_session* s)
         }
     }
 
+    results[0].kind = WASM_I32;
+    results[0].of.i32 = TEE_ERROR_GENERIC;
     /* TEE_Result TA_EXPORT TA_CreateEntryPoint( void ) */
-    if (wasm_runtime_call_wasm(utc->exec_env, utc->func, 6, ta_argv)) {
-        wasm_res = *(TEE_Result*)ta_argv;
-        DMSG("call wasm_TA_CreateEntryPoint ret: 0x%" PRIx32 "\n", wasm_res);
-        if (wasm_res != TEE_SUCCESS) {
-            res = wasm_res;
+    if (wasm_runtime_call_wasm_a(utc->exec_env, utc->func, 1, results, 1, ta_arguments)) {
+        DMSG("call wasm_TA_CreateEntryPoint ret: 0x%" PRIx32 "\n", results[0].of.i32);
+        if (results[0].of.i32 != TEE_SUCCESS) {
+            res = results[0].of.i32;
             goto out;
         }
     } else {
@@ -280,23 +343,21 @@ static TEE_Result user_ta_wasm_enter_open_session(struct ts_session* s)
      *				[inout] TEE_Param params[4],
      *				[out][ctx] void** sessionContext )
      */
-    ta_argv[0] = ta_sess->param->types;
 
-    // ta_argv[1,2,3,4] = p0..p3
-    res = wasm_copy_in_app_params(utc, ta_sess->param->types, &ta_argv[1], p_cookie,
-        ta_sess->param);
+    ta_arguments[0].kind = WASM_I32;
+    ta_arguments[0].of.i32 = ta_sess->param->types;
+    res = wasm_copy_in_app_params(utc, ta_sess->param->types, &ta_arguments[1], p_cookie, ta_sess->param);
     if (res != TEE_SUCCESS) {
         EMSG("%08x : 0x%" PRIx32 "\n", TEE_ERROR_GENERIC, res);
         goto out;
     }
-
-    buffer_for_wasm = wasm_runtime_module_malloc(utc->wasm_module_inst,
-        sizeof(uint32_t), (void**)&buffer);
+    buffer_for_wasm = WASM_RUNTIME_MODULE_MALLOC(utc,
+        sizeof(size_t), &buffer);
     if (buffer_for_wasm != 0) {
-        ta_argv[5] = buffer_for_wasm;
+        SET_WASM_VAL_T_VALUE(ta_arguments, 5, buffer_for_wasm);
     } else {
-        EMSG("%08x : %u\n", TEE_ERROR_OUT_OF_MEMORY, sizeof(uint32_t));
-        wasm_free_app_params(utc, &ta_argv[1]);
+        EMSG("%08x : %u\n", TEE_ERROR_OUT_OF_MEMORY, sizeof(size_t));
+        wasm_free_app_params(utc, &ta_arguments[1]);
         res = TEE_ERROR_OUT_OF_MEMORY;
         goto out;
     }
@@ -306,33 +367,38 @@ static TEE_Result user_ta_wasm_enter_open_session(struct ts_session* s)
      *				[inout] TEE_Param params[4],
      *				[out][ctx] void** sessionContext );
      */
-    if (wasm_runtime_call_wasm(utc->exec_env, utc->func, 6, ta_argv)) {
-        wasm_res = *(uint32_t*)ta_argv;
-        DMSG("call wasm_TA_OpenSessionEntryPoint ret: 0x%" PRIx32 "\n", wasm_res);
+    results[0].kind = WASM_I32;
+    results[0].of.i32 = TEE_ERROR_GENERIC;
+    if (wasm_runtime_call_wasm_a(utc->exec_env, utc->func, 1, results, 6, ta_arguments)) {
+        DMSG("call wasm_TA_OpenSessionEntryPoint ret: 0x%" PRIx32 "\n", results[0].of.i32);
+        if (results[0].of.i32 != TEE_SUCCESS) {
+            res = results[0].of.i32;
+            goto out;
+        }
     } else {
         EMSG("%08x : %s\n", TEE_ERROR_OUT_OF_MEMORY, wasm_runtime_get_exception(utc->wasm_module_inst));
-        wasm_free_app_params(utc, &ta_argv[1]);
+        wasm_free_app_params(utc, &ta_arguments[1]);
         res = TEE_ERROR_GENERIC;
         goto out;
     }
 
-    res = wasm_copy_out_app_params(utc, ta_sess->param->types, &ta_argv[1], p_cookie,
+    res = wasm_copy_out_app_params(utc, ta_sess->param->types, &ta_arguments[1], p_cookie,
         ta_sess->param);
     if (res != TEE_SUCCESS) {
         EMSG("%08x :0x%" PRIx32 "\n", TEE_ERROR_GENERIC, res);
         goto out;
     }
 
-    if (wasm_res) {
-        s->user_ctx = (void*)(*((uint32_t*)buffer)); // sessionContext
+    if (res == TEE_SUCCESS) {
+        size_t session_ctx_value = *((size_t*)buffer);
+        s->user_ctx = (void*)session_ctx_value;
     }
-    res = wasm_res;
+    res = results[0].of.i32;
 out:
     if (buffer_for_wasm) {
         wasm_runtime_module_free(utc->wasm_module_inst, buffer_for_wasm);
     }
 
-    // tee_ta_pop_current_session();
     ts_sess = ts_pop_current_session();
     assert(ts_sess == s);
 
@@ -343,12 +409,12 @@ static TEE_Result user_ta_wasm_enter_invoke_cmd(struct ts_session* s, uint32_t c
 {
     /* fixed CID 209922, UNUSED_VALUE(res) */
     TEE_Result res = TEE_ERROR_GENERIC;
-    TEE_Result wasm_res = TEE_ERROR_GENERIC;
     struct user_ta_ctx* utc = to_user_ta_ctx(s->ctx);
     struct tee_ta_session* ta_sess = to_ta_session(s);
     struct ts_session* ts_sess __maybe_unused = NULL;
-    uint32_t ta_argv[7] = { 0 };
-    uint32_t p_cookie[4] = { 0 };
+    wasm_val_t ta_arguments[7] = { 0 };
+    wasm_val_t p_cookie[4] = { 0 };
+    wasm_val_t results[1] = { 0 };
 
     ts_push_current_session(s);
 
@@ -367,34 +433,43 @@ static TEE_Result user_ta_wasm_enter_invoke_cmd(struct ts_session* s, uint32_t c
      *				uint32_t paramTypes,
      *				[inout] TEE_Param params[4]);
      */
-    ta_argv[0] = (uint32_t)(s->user_ctx);
-    ta_argv[1] = cmd;
-    ta_argv[2] = ta_sess->param->types;
+
+    SET_WASM_VAL_T_VALUE(ta_arguments, 0, s->user_ctx);
+    ta_arguments[1].of.i32 = cmd;
+    ta_arguments[1].kind = WASM_I32;
+    ta_arguments[2].of.i32 = ta_sess->param->types;
+    ta_arguments[2].kind = WASM_I32;
 
     // ta_argv[3,4,5,6] = p0..p3
-    res = wasm_copy_in_app_params(utc, ta_sess->param->types, &ta_argv[3], p_cookie,
+    res = wasm_copy_in_app_params(utc, ta_sess->param->types, &ta_arguments[3], p_cookie,
         ta_sess->param);
     if (res != TEE_SUCCESS) {
         EMSG("%08x : 0x%" PRIx32 "\n", TEE_ERROR_GENERIC, res);
         goto out;
     }
 
-    if (wasm_runtime_call_wasm(utc->exec_env, utc->func, 7, ta_argv)) {
-        wasm_res = *(TEE_Result*)ta_argv;
-        DMSG("call wasm_TA_InvokeCommandEntryPoint ret: 0x%" PRIx32 "\n", wasm_res);
+    results[0].kind = WASM_I32;
+    results[0].of.i32 = TEE_ERROR_GENERIC;
+    if (wasm_runtime_call_wasm_a(utc->exec_env, utc->func, 1, results, 7, ta_arguments)) {
+        DMSG("call wasm_TA_InvokeCommandEntryPoint ret: 0x%" PRIx32 "\n", results[0].of.i32);
+        if (results[0].of.i32 != TEE_SUCCESS) {
+            res = results[0].of.i32;
+            goto out;
+        }
     } else {
         EMSG("%08x : %s\n", TEE_ERROR_GENERIC, wasm_runtime_get_exception(utc->wasm_module_inst));
-        wasm_free_app_params(utc, &ta_argv[3]);
+        wasm_free_app_params(utc, &ta_arguments[3]);
         res = TEE_ERROR_GENERIC;
         goto out;
     }
 
-    res = wasm_copy_out_app_params(utc, ta_sess->param->types, &ta_argv[3], p_cookie,
+    res = wasm_copy_out_app_params(utc, ta_sess->param->types, &ta_arguments[3], p_cookie,
         ta_sess->param);
     if (res != TEE_SUCCESS) {
         EMSG("%08x : 0x%" PRIx32 "\n", TEE_ERROR_GENERIC, res);
     }
-    res = wasm_res;
+    res = results[0].of.i32;
+
 out:
     ts_sess = ts_pop_current_session();
     assert(ts_sess == s);
@@ -404,7 +479,7 @@ out:
 static void user_ta_wasm_enter_close_session(struct ts_session* s)
 {
     struct user_ta_ctx* utc = to_user_ta_ctx(s->ctx);
-    uint32_t ta_argv[1];
+    wasm_val_t ta_arguments[1] = { 0 };
     struct ts_session* ts_sess __maybe_unused = NULL;
     ts_push_current_session(s);
 
@@ -417,9 +492,8 @@ static void user_ta_wasm_enter_close_session(struct ts_session* s)
     }
 
     /* void TA_EXPORT TA_CloseSessionEntryPoint( [ctx] void* sessionContext); */
-    ta_argv[0] = (uint32_t)(s->user_ctx);
-
-    if (wasm_runtime_call_wasm(utc->exec_env, utc->func, 1, ta_argv)) {
+    SET_WASM_VAL_T_VALUE(ta_arguments, 0, s->user_ctx);
+    if (wasm_runtime_call_wasm_a(utc->exec_env, utc->func, 0, NULL, 1, ta_arguments)) {
         /* to do */
     } else {
         EMSG("%08x : %s\n", TEE_ERROR_GENERIC, wasm_runtime_get_exception(utc->wasm_module_inst));
@@ -438,7 +512,7 @@ static void user_ta_wasm_enter_close_session(struct ts_session* s)
         }
 
         /* void TA_EXPORT TA_DestroyEntryPoint( void ); */
-        if (wasm_runtime_call_wasm(utc->exec_env, utc->func, 0, NULL)) {
+        if (wasm_runtime_call_wasm_a(utc->exec_env, utc->func, 0, NULL, 0, NULL)) {
             /* to do */
         } else {
             EMSG("%08x : %s\n", TEE_ERROR_GENERIC, wasm_runtime_get_exception(utc->wasm_module_inst));
@@ -481,7 +555,6 @@ static void user_ta_wasm_ctx_destroy(struct ts_ctx* ctx)
         wasm_runtime_unload(utc->wasm_module);
     }
     if (utc->is_xip_file) {
-        // os_munmap(utc->wasm_file_buffer, utc->wasm_file_size);
         munmap(utc->wasm_file_buffer, utc->wasm_file_size);
     } else {
         if (utc->wasm_file_buffer) {
@@ -620,7 +693,7 @@ static TEE_Result tee_ta_init_user_ta_wasm_session(const TEE_UUID* uuid __unused
         close(fd);
         goto out2;
     }
-    DMSG("file address: 0x%" PRIx32 "\n", (uint32_t)utc->wasm_file_buffer);
+    DMSG("file address: 0x%" PRIxPTR "\n", (uintptr_t)utc->wasm_file_buffer);
     close(fd);
     utc->is_xip_file = true;
 #endif
