@@ -26,12 +26,12 @@ CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/external/optee/optee_os/optee_os/lib/libutil
 CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/external/optee/optee_os/optee_os/lib/libutee/include
 CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/crypto/mbedtls/mbedtls/library
 
-ifeq ($(CONFIG_ARCH_ARM64),y)
+ifeq (y, $(filter y, $(CONFIG_ARCH_ARM) $(CONFIG_ARCH_SIM)))
+CFLAGS += -DARM32
+endif
+
+ifeq (y, $(filter y, $(CONFIG_ARCH_ARM64) $(CONFIG_ARCH_X86_64)))
 CFLAGS += -DARM64
-else ifeq ($(CONFIG_ARCH_ARM),y)
-CFLAGS += -DARM32
-else ifeq ($(CONFIG_ARCH_SIM),y)
-CFLAGS += -DARM32
 endif
 
 CFLAGS += -DCFG_CORE_DYN_SHM
