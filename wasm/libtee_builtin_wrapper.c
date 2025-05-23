@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <syslog.h>
+#include <unistd.h>
 
 #include <tee_api.h>
 #include <tee_api_defines.h>
