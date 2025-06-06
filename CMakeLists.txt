@@ -35,6 +35,8 @@ if(CONFIG_OPTEE_OS)
     list(APPEND CFLAGS -DCFG_TEE_CORE_DEBUG)
   endif()
 
+  list(APPEND CFLAGS -D__text_start=_stext)
+
   if(CONFIG_DEBUG_INFO)
     list(APPEND CFLAGS -DTRACE_LEVEL=3)
   elseif(CONFIG_DEBUG_WARN)

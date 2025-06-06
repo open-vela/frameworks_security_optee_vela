@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+#include <kernel/linker.h>
 #include <kernel/user_access.h>
 #include <mm/vm.h>
 #include <string.h>
@@ -55,10 +56,10 @@ TEE_Result copy_kaddr_to_uref(uint32_t* uref, void* kaddr)
 
 uint32_t kaddr_to_uref(void* kaddr)
 {
-    return (vaddr_t)kaddr;
+    return (vaddr_t)kaddr - VCORE_START_VA;
 }
 
 vaddr_t uref_to_vaddr(uint32_t uref)
 {
-    return uref;
+    return VCORE_START_VA + uref;
 }
