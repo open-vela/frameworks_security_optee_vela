@@ -62,3 +62,20 @@ config USER_TA_WASM
 config OPTEE_HOST_FS_PARENT_PATH
 	string "Enable custom hostfs pathname"
 	default "/sst"
+
+choice
+	prompt "TA Format"
+	default OPTEE_TA_XIP
+
+config OPTEE_TA_WASM
+	bool "WASM"
+
+config OPTEE_TA_XIP
+	bool "XIP"
+
+endchoice
+
+config OPTEE_TA_FORMAT
+	string
+	default "WASM" if OPTEE_TA_WASM
+	default "XIP" if OPTEE_TA_XIP
