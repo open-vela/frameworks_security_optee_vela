@@ -56,10 +56,18 @@ TEE_Result copy_kaddr_to_uref(uint32_t* uref, void* kaddr)
 
 uint32_t kaddr_to_uref(void* kaddr)
 {
+#ifdef CONFIG_OPTEE_COMPAT_MITEE_FS
+    return (vaddr_t)kaddr;
+#else
     return (vaddr_t)kaddr - VCORE_START_VA;
+#endif
 }
 
 vaddr_t uref_to_vaddr(uint32_t uref)
 {
+#ifdef CONFIG_OPTEE_COMPAT_MITEE_FS
+    return uref;
+#else
     return VCORE_START_VA + uref;
+#endif
 }
