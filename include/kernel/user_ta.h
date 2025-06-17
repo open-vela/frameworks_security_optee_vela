@@ -9,10 +9,10 @@
 
 #include <assert.h>
 #include <kernel/tee_ta_manager.h>
-#include <kernel/user_mode_ctx_struct.h>
 #include <kernel/thread.h>
-#include <mm/file.h>
+#include <kernel/user_mode_ctx_struct.h>
 #include <mm/tee_mm.h>
+#include <nuttx/fs/fs.h>
 #include <scattered_array.h>
 #include <tee_api_types.h>
 #include <types_ext.h>
@@ -38,52 +38,51 @@ SLIST_HEAD(load_seg_head, load_seg);
  * @ctx:		Generic TA context
  */
 struct user_ta_ctx {
-	struct tee_ta_session_head open_sessions;
-	struct tee_cryp_state_head cryp_states;
-	struct tee_obj_head objects;
-	struct tee_storage_enum_head storage_enums;
-	void *ta_time_offs;
-	struct user_mode_ctx uctx;
-	struct tee_ta_ctx ta_ctx;
+    struct tee_ta_session_head open_sessions;
+    struct tee_cryp_state_head cryp_states;
+    struct tee_obj_head objects;
+    struct tee_storage_enum_head storage_enums;
+    void* ta_time_offs;
+    struct user_mode_ctx uctx;
+    struct tee_ta_ctx ta_ctx;
 #ifdef USER_TA_WASM
-	/* the following fileds are for wasm ta implementation */
-	wasm_module_t wasm_module;
-	wasm_module_inst_t wasm_module_inst;
-	wasm_function_inst_t func;
-	wasm_exec_env_t exec_env;
-	uint8_t *wasm_file_buffer;
-	uint32_t wasm_file_size;
-	uint32_t stack_size;
-	bool is_xip_file;
+    /* the following fileds are for wasm ta implementation */
+    wasm_module_t wasm_module;
+    wasm_module_inst_t wasm_module_inst;
+    wasm_function_inst_t func;
+    wasm_exec_env_t exec_env;
+    uint8_t* wasm_file_buffer;
+    uint32_t wasm_file_size;
+    uint32_t stack_size;
+    bool is_xip_file;
 #endif
 };
 
 #ifdef CFG_WITH_USER_TA
-bool is_user_ta_ctx(struct ts_ctx *ctx);
+bool is_user_ta_ctx(struct ts_ctx* ctx);
 #else
-static inline bool is_user_ta_ctx(struct ts_ctx *ctx __unused)
+static inline bool is_user_ta_ctx(struct ts_ctx* ctx __unused)
 {
-	return false;
+    return false;
 }
 #endif
 
-static inline struct user_ta_ctx *to_user_ta_ctx(struct ts_ctx *ctx)
+static inline struct user_ta_ctx* to_user_ta_ctx(struct ts_ctx* ctx)
 {
-	assert(is_user_ta_ctx(ctx));
-	return container_of(ctx, struct user_ta_ctx, ta_ctx.ts_ctx);
+    assert(is_user_ta_ctx(ctx));
+    return container_of(ctx, struct user_ta_ctx, ta_ctx.ts_ctx);
 }
 
 #ifdef CFG_WITH_USER_TA
-TEE_Result tee_ta_init_user_ta_session(const TEE_UUID *uuid,
-			struct tee_ta_session *s);
+TEE_Result tee_ta_init_user_ta_session(const TEE_UUID* uuid,
+    struct tee_ta_session* s);
 #else
 static inline TEE_Result tee_ta_init_user_ta_session(
-			const TEE_UUID *uuid __unused,
-			struct tee_ta_session *s __unused)
+    const TEE_UUID* uuid __unused,
+    struct tee_ta_session* s __unused)
 {
-	return TEE_ERROR_ITEM_NOT_FOUND;
+    return TEE_ERROR_ITEM_NOT_FOUND;
 }
 #endif
-
 
 #endif /*KERNEL_USER_TA_H*/
