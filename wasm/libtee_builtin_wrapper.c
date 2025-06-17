@@ -121,6 +121,9 @@ TEE_Realloc_wrapper(wasm_exec_env_t exec_env,
 {
     DMSG("wasm.libtee.%s\n", __func__);
     wasm_module_inst_t module_inst = get_module_inst(exec_env);
+    if (!validate_app_addr((uintptr_t)buffer, sizeof(uintptr_t))) {
+        return NULL;
+    }
     return (void*)(uintptr_t)wasm_runtime_module_realloc(module_inst, (uintptr_t)buffer, newSize, NULL);
 }
 
