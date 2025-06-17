@@ -1235,7 +1235,7 @@ TEE_MACComputeFinal_wrapper(wasm_exec_env_t exec_env,
 
     /* CID 209905, SIZEOF_MISMATCH. No problem. */
     /* mac has been checked by runtime */
-    if (!validate_app_addr((uintptr_t)macLen, sizeof(size_t*)))
+    if (!validate_app_addr((uintptr_t)macLen, sizeof(uintptr_t)))
         return TEE_ERROR_BAD_PARAMETERS;
 
     size_t* macLen_ptr = addr_app_to_native((uintptr_t)macLen);
