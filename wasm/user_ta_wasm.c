@@ -156,7 +156,7 @@ static TEE_Result wasm_copy_in_app_params(struct user_ta_ctx* utc,
                 memcpy(buffer, &param->u[n].val.a, sizeof(uint32_t));
                 memcpy(buffer + sizeof(uint32_t), &param->u[n].val.b, sizeof(uint32_t));
             } else {
-                EMSG("%08x : %u\n", TEE_ERROR_OUT_OF_MEMORY, sizeof(uint32_t) * 2);
+                EMSG("%08x : %zu\n", TEE_ERROR_OUT_OF_MEMORY, sizeof(uint32_t) * 2);
                 res = TEE_ERROR_OUT_OF_MEMORY;
                 goto out;
             }
@@ -356,7 +356,7 @@ static TEE_Result user_ta_wasm_enter_open_session(struct ts_session* s)
     if (buffer_for_wasm != 0) {
         SET_WASM_VAL_T_VALUE(ta_arguments, 5, buffer_for_wasm);
     } else {
-        EMSG("%08x : %u\n", TEE_ERROR_OUT_OF_MEMORY, sizeof(size_t));
+        EMSG("%08x : %zu\n", TEE_ERROR_OUT_OF_MEMORY, sizeof(size_t));
         wasm_free_app_params(utc, &ta_arguments[1]);
         res = TEE_ERROR_OUT_OF_MEMORY;
         goto out;
@@ -631,7 +631,7 @@ static TEE_Result tee_ta_init_user_ta_wasm_session(const TEE_UUID* uuid __unused
     /* Register context */
     utc = calloc(1, sizeof(struct user_ta_ctx));
     if (!utc) {
-        EMSG("%08x : %u\n", TEE_ERROR_OUT_OF_MEMORY, sizeof(struct user_ta_ctx));
+        EMSG("%08x : %zu\n", TEE_ERROR_OUT_OF_MEMORY, sizeof(struct user_ta_ctx));
         res = TEE_ERROR_OUT_OF_MEMORY;
         goto out1;
     }
