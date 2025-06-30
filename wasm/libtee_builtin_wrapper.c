@@ -1127,7 +1127,7 @@ TEE_PopulateTransientObject_wrapper(wasm_exec_env_t exec_env,
     /* convert wasm TEE_Attribute to native */
     attrs_native = (TEE_Attribute*)malloc(sizeof(TEE_Attribute) * attrCount);
     if (!attrs_native) {
-        EMSG("%08x : %" PRIx32 "\n", TEE_ERROR_OUT_OF_MEMORY, sizeof(TEE_Attribute) * attrCount);
+        EMSG("%08x : 0x%zx\n", TEE_ERROR_OUT_OF_MEMORY, (size_t)(sizeof(TEE_Attribute) * attrCount));
         return TEE_ERROR_OUT_OF_MEMORY;
     }
     for (uint32_t i = 0; i < attrCount; i++) {
