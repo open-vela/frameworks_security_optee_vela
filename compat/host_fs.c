@@ -55,11 +55,15 @@ static int do_mkdir(const char* path, mode_t mode)
 
     memset(&st, 0, sizeof(st));
 
-    if (mkdir(path, mode) != 0 && errno != EEXIST)
+    if (mkdir(path, mode) != 0 && errno != EEXIST) {
+        EMSG("mkdir dir of %s with mode %d failed, and errno is %d", path, mode, errno);
         return -1;
+    }
 
-    if (stat(path, &st) != 0 && !S_ISDIR(st.st_mode))
+    if (stat(path, &st) != 0 && !S_ISDIR(st.st_mode)) {
+        EMSG("get stat info of %s failed", path);
         return -1;
+    }
 
     fs_fsync();
     return 0;
@@ -83,10 +87,12 @@ static int mkpath(const char* path, mode_t mode)
         }
         prev = curr + 1;
     }
-    if (status == 0)
+    if (status == 0) {
         status = do_mkdir(path, mode);
+    }
 
     free(subpath);
+    DMSG("make path of %s with mode %d success", path, mode);
     return status;
 }
 
@@ -105,20 +111,28 @@ static TEE_Result errno_to_tee(int err)
 
 static TEE_Result host_fs_init(void)
 {
+    DMSG("perform host_fs_init action");
     size_t n = 0;
     mode_t mode = 0700;
     if (tee_fs_root[0]) {
+        DMSG("the host_fs root is already setup");
         return TEE_SUCCESS;
     }
 
     n = snprintf(tee_fs_root, sizeof(tee_fs_root), "%s/", HOST_FS_PARENT_PATH);
 
-    if (n >= sizeof(tee_fs_root))
+    if (n >= sizeof(tee_fs_root)) {
+        EMSG("the host_fs root path is invalid");
         return TEE_ERROR_NOT_SUPPORTED;
+    }
 
-    if (mkpath(tee_fs_root, mode) != 0)
+    DMSG("start to make the host fs root path %s with mode %d", tee_fs_root, mode);
+    if (mkpath(tee_fs_root, mode) != 0) {
+        EMSG("fail to make the host_fs root of %s with mode %d", tee_fs_root, mode);
         return TEE_ERROR_NOT_SUPPORTED;
+    }
 
+    DMSG("host fs init success");
     return TEE_SUCCESS;
 }
 
