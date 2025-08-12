@@ -650,13 +650,15 @@ static TEE_Result tee_ta_init_user_ta_wasm_session(const TEE_UUID* uuid __unused
         init_args.mem_alloc_option.allocator.realloc_func = realloc;
         init_args.mem_alloc_option.allocator.free_func = free;
 #endif
-        n_native_symbols = get_libtee_builtin_export_apis(&native_symbols);
-        init_args.native_module_name = "env";
-        init_args.n_native_symbols = n_native_symbols;
-        init_args.native_symbols = native_symbols;
-
         /* initialize runtime environment */
         if (!wasm_runtime_full_init(&init_args)) {
+            EMSG("%08x\n", TEE_ERROR_GENERIC);
+            goto out2;
+        }
+
+        n_native_symbols = get_libtee_builtin_export_apis(&native_symbols);
+
+        if (!wasm_runtime_register_natives("env", native_symbols, n_native_symbols)) {
             EMSG("%08x\n", TEE_ERROR_GENERIC);
             goto out2;
         }
