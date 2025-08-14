@@ -25,6 +25,9 @@
  */
 
 #include_next <assert.h>
+
+#ifndef __ASSEMBLY__
 #include <trace.h>
+#endif /* __ASSEMBLY__ */
 
 #endif /* __ASSERT_COMPAT_H */
