@@ -104,6 +104,7 @@ static TEE_Result errno_to_tee(int err)
     case ENOENT:
         return TEE_ERROR_ITEM_NOT_FOUND;
     default:
+        EMSG("fatal error: unexpected error: %d", err);
         break;
     }
     return TEE_ERROR_GENERIC;
