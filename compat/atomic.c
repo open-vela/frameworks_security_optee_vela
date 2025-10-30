@@ -17,6 +17,8 @@
 #include <nuttx/spinlock.h>
 #include <stdint.h>
 
+static volatile spinlock_t g_lock = SP_UNLOCKED;
+
 /*
  * the following __atomic_load_8 is needed by optee_os copy_in_params
  * related operations, but the vela toolchain only provide
@@ -26,10 +28,10 @@
  */
 uint64_t __atomic_load_8(FAR const volatile void* ptr, int memorder)
 {
-    irqstate_t irqstate = spin_lock_irqsave(NULL);
+    irqstate_t irqstate = spin_lock_irqsave(&g_lock);
 
     uint64_t ret = *(FAR uint64_t*)ptr;
 
-    spin_unlock_irqrestore(NULL, irqstate);
+    spin_unlock_irqrestore(&g_lock, irqstate);
     return ret;
 }
