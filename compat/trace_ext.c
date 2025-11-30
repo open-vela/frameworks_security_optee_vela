@@ -18,6 +18,7 @@
 #include <nuttx/sched.h>
 #include <syslog.h>
 #include <trace.h>
+#include <unistd.h>
 
 const char trace_ext_prefix[] = "TC";
 int trace_level = TRACE_LEVEL;
