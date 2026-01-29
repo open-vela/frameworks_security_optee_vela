@@ -96,7 +96,8 @@ static int mkpath(const char* path, mode_t mode)
     return status;
 }
 
-static TEE_Result errno_to_tee(int err)
+static TEE_Result errno_to_tee_at(int err, const char* file, int line,
+    const char* func)
 {
     switch (err) {
     case ENOSPC:
@@ -104,11 +105,14 @@ static TEE_Result errno_to_tee(int err)
     case ENOENT:
         return TEE_ERROR_ITEM_NOT_FOUND;
     default:
-        EMSG("fatal error: unexpected error: %d", err);
+        EMSG("fatal error: unexpected error: %d at %s:%d (%s)", err, file,
+            line, func);
         break;
     }
     return TEE_ERROR_GENERIC;
 }
+
+#define errno_to_tee(err) errno_to_tee_at((err), __FILE__, __LINE__, __func__)
 
 static TEE_Result host_fs_init(void)
 {
