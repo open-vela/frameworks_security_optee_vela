@@ -287,13 +287,15 @@ TEE_Result host_fs_create(size_t num_params, struct thread_param* params)
         rmdir(d);
         return errno_to_tee(err);
     }
-    if (errno != ENOENT)
+    if (errno != ENOENT && errno != EEXIST)
         return errno_to_tee(errno);
 
     /* Parent directory for file missing, try to make it */
     d = dirname(d);
-    if (mkdir(d, 0700))
-        return errno_to_tee(errno);
+    if (mkdir(d, 0700)) {
+        if (errno != ENOENT && errno != EEXIST)
+            return errno_to_tee(errno);
+    }
 
     /* Try to make directory for file again */
     strncpy(abs_dir, abs_filename, sizeof(abs_dir));
@@ -302,9 +304,11 @@ TEE_Result host_fs_create(size_t num_params, struct thread_param* params)
     if (mkdir(d, 0700)) {
         int err = errno;
 
-        d = dirname(d);
-        rmdir(d);
-        return errno_to_tee(err);
+        if (err != ENOENT && err != EEXIST) {
+            d = dirname(d);
+            rmdir(d);
+            return errno_to_tee(err);
+        }
     }
 
     fd = open_wrapper(abs_filename, flags);
