@@ -749,13 +749,37 @@ static TEE_Result tee_ta_init_user_ta_wasm_session(const TEE_UUID* uuid __unused
     utc->ta_ctx.ts_ctx.uuid = *uuid;
 
     set_ta_ctx_ops(&utc->ta_ctx);
-    utc->ta_ctx.ref_count++;
 
-    utc->uctx.is_initializing = false;
+    /* Mark as initializing before adding to tee_ctxes */
+    utc->uctx.is_initializing = true;
+
+    /*
+     * Protect ref_count and tee_ctxes list operations with mutex,
+     * following the pattern from native OPTEE user_ta.c
+     */
+    mutex_lock(&tee_ta_mutex);
+    utc->ta_ctx.ref_count = 1;
     s->ts_sess.ctx = &utc->ta_ctx.ts_ctx;
-
+    s->ts_sess.handle_scall = s->ts_sess.ctx->ops->handle_scall;
+    /*
+     * Another thread trying to load this same TA may need to wait
+     * until this context is fully initialized. This is needed to
+     * handle single instance TAs.
+     */
     TAILQ_INSERT_TAIL(&tee_ctxes, &utc->ta_ctx, link);
+    mutex_unlock(&tee_ta_mutex);
+
     DMSG("Context was successfully inserted!\n");
+
+    /*
+     * Mark initialization complete and notify any waiting threads.
+     * In native OPTEE, ldelf initialization happens here, but for WASM TA
+     * the initialization is already complete at this point.
+     */
+    mutex_lock(&tee_ta_mutex);
+    utc->uctx.is_initializing = false;
+    condvar_broadcast(&tee_ta_init_cv);
+    mutex_unlock(&tee_ta_mutex);
 
     return TEE_SUCCESS;
 
